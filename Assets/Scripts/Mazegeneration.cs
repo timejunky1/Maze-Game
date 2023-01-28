@@ -31,10 +31,10 @@ public class Mazegeneration
             for (int y = 0; y < baseSize; y++)
             {
                 Square square = new Square(xpos - Mathf.CeilToInt(baseSize/2) + x, ypos - Mathf.CeilToInt(baseSize/2) + y, cubeSize, mazeSize);
-                if (x == 0) { square.right = false; } else { square.left = false; }
-                if (x == baseSize - 1) { square.left = false; } else { square.right = false; }
-                if (y == 0) { square.top = false; } else { square.bottom = false; }
-                if (y == baseSize - 1) { square.bottom = false; } else { square.top = false; }
+                if (x == 0) { square.sides[1] = false; } else { square.sides[3] = false; }
+                if (x == baseSize - 1) { square.sides[3] = false; } else { square.sides[1] = false; }
+                if (y == 0) { square.sides[0] = false; } else { square.sides[2] = false; }
+                if (y == baseSize - 1) { square.sides[2] = false; } else { square.sides[0] = false; }
                 lockedSquares.Add(square);
             }
 
@@ -49,10 +49,7 @@ public class Mazegeneration
         }
         foreach (Square sqr in lockedSquares)
         {
-            matrix[sqr.xIndex, sqr.yIndex].left = sqr.left;
-            matrix[sqr.xIndex, sqr.yIndex].right = sqr.right;
-            matrix[sqr.xIndex, sqr.yIndex].bottom = sqr.bottom;
-            matrix[sqr.xIndex, sqr.yIndex].top = sqr.top;
+            matrix[sqr.xIndex, sqr.yIndex] = sqr;
         }
         Stack<Vector2> visited = new Stack<Vector2>();
         List<Vector2> options = new List<Vector2>();
@@ -82,23 +79,23 @@ public class Mazegeneration
                 int newYPos = (int)option.y;
                 if (xpos < newXPos)
                 {
-                    matrix[xpos, ypos].right = false;
-                    matrix[newXPos, newYPos].left = false;
+                    matrix[xpos, ypos].sides[1] = false;
+                    matrix[newXPos, newYPos].sides[3] = false;
                 }
                 if (xpos > newXPos)
                 {
-                    matrix[xpos, ypos].left = false;
-                    matrix[newXPos, newYPos].right = false;
+                    matrix[xpos, ypos].sides[3] = false;
+                    matrix[newXPos, newYPos].sides[1] = false;
                 }
                 if (ypos < newYPos)
                 {
-                    matrix[xpos, ypos].top = false;
-                    matrix[newXPos, newYPos].bottom = false;
+                    matrix[xpos, ypos].sides[0] = false;
+                    matrix[newXPos, newYPos].sides[2] = false;
                 }
                 if (ypos > newYPos)
                 {
-                    matrix[xpos, ypos].bottom = false;
-                    matrix[newXPos, newYPos].top = false;
+                    matrix[xpos, ypos].sides[2] = false;
+                    matrix[newXPos, newYPos].sides[0] = false;
                 }
                 xpos = newXPos;
                 ypos = newYPos;
@@ -217,7 +214,7 @@ public class Mazegeneration
         Vector2 result = new Vector2(xPos, yPos); ;
         if(xPos != matrix.GetLength(0) - 1)
         {
-            if (matrix[xPos, yPos].right == false && matrix[xPos + 1, yPos].left == false && matrix[xPos + 1, yPos].regions.Contains(region) == false)//right
+            if (matrix[xPos, yPos].sides[1] == false && matrix[xPos + 1, yPos].sides[3] == false && matrix[xPos + 1, yPos].regions.Contains(region) == false)//right
             {
                 result = new Vector2(xPos + 1, yPos);
                 return result;
@@ -225,7 +222,7 @@ public class Mazegeneration
         }
         if(yPos != 0)
         {
-            if (matrix[xPos, yPos].bottom == false && matrix[xPos, yPos - 1].top == false && matrix[xPos, yPos - 1].regions.Contains(region) == false)//down
+            if (matrix[xPos, yPos].sides[2] == false && matrix[xPos, yPos - 1].sides[0] == false && matrix[xPos, yPos - 1].regions.Contains(region) == false)//down
             {
                 result = new Vector2(xPos, yPos - 1);
                 return result;
@@ -233,7 +230,7 @@ public class Mazegeneration
         }
         if(xPos != 0)
         {
-            if (matrix[xPos, yPos].left == false && matrix[xPos - 1, yPos].right == false && matrix[xPos - 1, yPos].regions.Contains(region) == false)//left
+            if (matrix[xPos, yPos].sides[3] == false && matrix[xPos - 1, yPos].sides[1] == false && matrix[xPos - 1, yPos].regions.Contains(region) == false)//left
             {
                 result = new Vector2(xPos - 1, yPos);
                 return result;
@@ -241,7 +238,7 @@ public class Mazegeneration
         }
         if(yPos != matrix.GetLength(1) - 1)
         {
-            if (matrix[xPos, yPos].top == false && matrix[xPos, yPos + 1].bottom == false && matrix[xPos,yPos + 1].regions.Contains(region) == false)//up
+            if (matrix[xPos, yPos].sides[0] == false && matrix[xPos, yPos + 1].sides[2] == false && matrix[xPos,yPos + 1].regions.Contains(region) == false)//up
             {
                 result = new Vector2(xPos, yPos + 1);
                 return result;
@@ -256,88 +253,105 @@ public class Square
     public SortedSet<float> regionvalues = new SortedSet<float>();
     public string region = "";
     public float regionValue = 0;
-    public bool visited;
-    public bool left;
-    public bool right;
-    public bool top;
-    public bool bottom;
     public Vector3 location;
-    public Vector3 topLeft;
-    public Vector3 topRight;
-    public Vector3 bottomLeft;
-    public Vector3 bottomRight;
+    public bool visited = false;
     public int xIndex;
     public int yIndex;
-
-    public bool topExtend2 = false;
-    public bool topExtend1 = false;
-    public bool rightExtend2 = false ;
-    public bool rightExtend1 = false ;
-    public bool bottomExtend2 = false;
-    public bool bottomExtend1 = false;
-    public bool leftExtend2 = false;
-    public bool leftExtend1 = false;
+    public bool[] sides = {true, true, true, true}; //sides sterting with top left
+    public bool[] extends = { false, false, false, false, false, false, false, false }; //The values of the extends starting with top left 
+    public Vector3[] corners; //starting from topLeft
 
     bool hasMesh = false;
     MeshData meshData;
 
     public Square(int xIndex,int yIndex, int cubeSize, int mazeSize)
     {
-        this.visited = false;
-        this.left = true;
-        this.right = true;
-        this.top = true;
-        this.bottom = true;
+        corners = new Vector3[4];
         this.xIndex= xIndex;
         this.yIndex= yIndex;
         this.location = new Vector3((xIndex + 1) * cubeSize - (mazeSize * cubeSize / 2) - cubeSize / 2, 0, (yIndex + 1) * cubeSize - (mazeSize * cubeSize / 2) - cubeSize / 2);
         CalculateCorners(cubeSize);
         
     }
-        void CalculateCorners(int cubeSize)
-        {
-            this.topLeft = new Vector3(location.x - cubeSize / 2,0, location.z + cubeSize / 2);
-            this.topRight = new Vector3(location.x + cubeSize / 2,0, location.z + cubeSize / 2);
-            this.bottomLeft = new Vector3(location.x - cubeSize / 2,0, location.z - cubeSize / 2);
-            this.bottomRight = new Vector3(location.x + cubeSize / 2,0, location.z - cubeSize / 2);
-        }
+    void CalculateCorners(int cubeSize)
+    {
 
-        public void calculateExtends(Square[,] grid)
+        corners[0] = new Vector3(location.x - cubeSize / 2,0, location.z + cubeSize / 2);
+        corners[1] = new Vector3(location.x + cubeSize / 2,0, location.z + cubeSize / 2);
+        corners[2] = new Vector3(location.x + cubeSize / 2,0, location.z - cubeSize / 2);
+        corners[3] = new Vector3(location.x - cubeSize / 2,0, location.z - cubeSize / 2);
+    }
+
+    public void calculateExtends(Square[,] grid)
+    {
+            int x = 1; int y = 1;int signX = -1; int signY = 1;     
+            for( int i = 0; i < 4; i++ )
+            {
+                if(i == 1 || i == 3)
+                {
+                    signX = -signX;
+                }
+                if (grid[x + -(i % 2 - 1), y - i % 2] != null && sides[i] && sides[(i+1)%4] == false && grid[x + -(i%2-1), y - i%2].sides[i] == false && grid[x -signX, y + signY].extends[(i*2+6)%8] == false)//bot
+                {
+                    sides[(i*2+1)%8] = true;
+                }
+                if(i == 1 || i == 3)
+                {
+                    signY = -signY;
+                    signX = -signX;
+                }
+                if (grid[x + (i % 2 - 1), y + i % 2] != null && sides[i] && sides[(i+3)%4] == false && grid[x + (i % 2 - 1), y + i%2].sides[i] == false && grid[x + signX, y + signY].extends[(i*2+3)%8] == false)
+                {
+                    extends[(i * 2)%8] = true;
+                }
+                if(i == 1 || i == 3)
+                {
+                    signX = -signX;
+                }
+
+            }
+            if (sides[0] && sides[1] == false && grid[x + 1, y].sides[0] == false && grid[x + 1, y + 1].extends[6] == false)//top
+            {
+                extends[1] = true;
+            }
+            if (sides[2] && sides[1] == false && grid[x + 1, y].sides[2] == false && grid[x + 1, y - 1].extends[7] == false)
+            {
+                extends[5] = true;
+            }
+        if(grid[x - 1, y] != null)
         {
-            int x = xIndex; int y = yIndex;
-            if (top && right == false && grid[x + 1, y].top == false && grid[x + 1, y + 1].leftExtend1 == false)//top
+            if (sides[0] && sides[3] == false && grid[x - 1, y].sides[0] == false && grid[x - 1, y + 1].extends[3] == false)
             {
-                topExtend2 = true;
+                extends[0] = true;
             }
-            if (top && left == false && grid[x - 1, y].top == false && grid[x - 1, y + 1].rightExtend2 == false)
+            if (sides[2] && sides[3] == false && grid[x - 1, y].sides[2] == false && grid[x - 1, y - 1].extends[2] == false)//bot
             {
-                topExtend1 = true;
-            }
-            if (right && bottom == false && grid[x, y - 1].right == false && grid[x + 1, y - 1].topExtend1 == false)//right
-            {
-                rightExtend2 = true;
-            }
-            if (right && top == false && grid[x, y + 1].right == false && grid[x + 1, y + 1].bottomExtend2 == false)
-            {
-                rightExtend1 = true;
-            }
-            if (bottom && left == false && grid[x - 1, y].bottom == false && grid[x - 1, y - 1].rightExtend1 == false)//bot
-            {
-                bottomExtend2 = true;
-            }
-            if (bottom && right == false && grid[x + 1, y].bottom == false && grid[x + 1, y - 1].leftExtend2 == false)
-            {
-                bottomExtend1 = true;
-            }
-            if (left && top == false && grid[x, y + 1].left == false && grid[x - 1, y + 1].bottomExtend1 == false)//left
-            {
-                rightExtend2 = true;
-            }
-            if (left && bottom == false && grid[x, y - 1].left == false && grid[x - 1, y - 1].topExtend2 == false)
-            {
-                rightExtend1 = true;
+                extends[5] = true;
             }
         }
+        if (grid[x, y - 1] != null)
+        {
+            if (sides[3] && sides[2] == false && grid[x, y - 1].sides[3] == false && grid[x - 1, y - 1].extends[1] == false)
+            {
+                extends[3] = true;
+            }
+            if (sides[1] && sides[2] == false && grid[x, y - 1].sides[1] == false && grid[x + 1, y - 1].extends[0] == false)//right
+            {
+                extends[2] = true;
+            }
+        }
+        if(grid[x, y + 1] != null)
+        {
+            if (sides[1] && sides[0] == false && grid[x, y + 1].sides[1] == false && grid[x + 1, y + 1].extends[5] == false)
+            {
+                extends[2] = true;
+            }     
+            if (sides[3] && sides[0] == false && grid[x, y + 1].sides[3] == false && grid[x - 1, y + 1].extends[4] == false)//left
+            {
+                extends[3] = true;
+            }
+        }
+    }
     public void GetMeshData(Material material, int wallHeight, int wallWidth)
     {
         if (hasMesh)

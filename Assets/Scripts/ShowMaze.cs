@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -24,11 +25,11 @@ public class ShowMaze: MonoBehaviour
     [SerializeField]
     Region[] regions;
     Dictionary<string, Material> materials = new Dictionary<string, Material>();
-    List<Square> placesOfIntrest;
-    List<Square> bossLocations;
+    List<Square> placesOfIntrest = new List<Square>();
+    List<Square> bossLocations = new List<Square>();
     Square[,] grid;
-    List<Square> places;
-    Mazegeneration generation = new Mazegeneration();
+    List<Square> places = new List<Square>();
+    Mazegeneration maze = new Mazegeneration();
     // Start is called before the first frame update
     void Start()
     {
@@ -38,15 +39,29 @@ public class ShowMaze: MonoBehaviour
             regs[i] = regions[i].regionName;
             materials.Add(regions[i].regionName, regions[i].Material);
         }
-        grid = generation.GenerateMaze(mazeSize, cubeSize, backTrackDst, maxPathLength, bossDst, amountOfBosses, baseSize, regionSpread, bossChance, regs);
-        places = generation.visitedSquares;
-        placesOfIntrest = generation.PlacesOfIntrest;
-        bossLocations = generation.bossLocations;
-        int count = 0;
-        foreach(Square square in places)
+        grid = maze.GenerateMaze(mazeSize, cubeSize, backTrackDst, maxPathLength, bossDst, amountOfBosses, baseSize, regionSpread, bossChance, regs);
+        places = maze.visitedSquares;
+        Debug.Log(places.Count);
+        placesOfIntrest = maze.PlacesOfIntrest;
+        bossLocations = maze.bossLocations;
+        Square[,] sampleSquares = new Square[3, 3];
+        foreach (Square square in places)
         {
-            count++;
-            square.calculateExtends(grid);
+            for (int y = -1; y < sampleSquares.GetLength(0) - 1; y++)
+            {
+                for (int x = -1; x < sampleSquares.GetLength(1) - 1; x++)
+                {
+                    if (square.xIndex >= 1 && square.yIndex >= 1 && square.xIndex < grid.GetLength(0) - 1 && square.yIndex < grid.GetLength(1) - 1)
+                    {
+                        sampleSquares[x + 1, y + 1] = grid[square.xIndex + x, square.yIndex + y];
+                    }
+                    else
+                    {
+                        sampleSquares[x + 1, y + 1] = null;
+                    }
+                }
+            }
+            square.calculateExtends(sampleSquares);
             if (materials.ContainsKey(square.region))
             {
                 square.GetMeshData(materials[square.region], wallHeight, wallWidth);
@@ -55,82 +70,45 @@ public class ShowMaze: MonoBehaviour
             {
                 square.GetMeshData(defaultmaterial, wallHeight, wallWidth);
             }
+            Debug.Log("SQUARE");
+            for (int i = 0; i < square.sides.Length; i++)
+            {
+                Debug.Log(square.sides[i]);
+            }
+            for (int i = 0; i < square.extends.Length; i++)
+            {
+                Debug.Log(square.extends[i]);
+            }
         }
-        foreach(Square s in places)
+        foreach (Square s in places)
         {
             s.RenderMesh();
         }
     }
-    
+
     // Update is called once per frame
     private void OnDrawGizmos()
     {
-        if (grid != null)
+        foreach (Square square in places)
         {
-            //for (int x = 0; x < grid.GetLength(0); x++)
-            //{
-            //    for (int y = 0; y < grid.GetLength(1); y++)
-            //    {
-            //        Gizmos.color = Color.gray;
-            //        if (grid[x, y].left == true)
-            //        {
-            //            Gizmos.DrawLine(grid[x, y].topLeft, grid[x, y].bottomLeft);
-            //        }
-            //        if (grid[x, y].right == true)
-            //        {
-            //            Gizmos.DrawLine(grid[x, y].topRight, grid[x, y].bottomRight);
-            //        }
-            //        if (grid[x, y].top == true)
-            //        {
-            //            Gizmos.DrawLine(grid[x, y].topLeft, grid[x, y].topRight);
-            //        }
-            //        if (grid[x, y].bottom == true)
-            //        {
-            //            Gizmos.DrawLine(grid[x, y].bottomLeft, grid[x, y].bottomRight);
-            //        }
-            //        if (grid[x,y].region == "boss")
-            //        {
-            //            Gizmos.color = Color.red;
-            //            Gizmos.DrawSphere(grid[x, y].location, 0.5f / grid[x,y].regionValue);
-            //        }
-            //    }
-            //}
-            foreach (Square square in places)
+            Gizmos.color = Color.gray;
+            for (int i = 0; i < 4; i++)
             {
-                Gizmos.color = Color.gray;
-                if (square.left == true)
+                if (square.sides[i] == true)
                 {
-                    Gizmos.DrawLine(square.topLeft, square.bottomLeft);
-                }
-                if (square.right == true)
-                {
-                    Gizmos.DrawLine(square.topRight, square.bottomRight);
-                }
-                if (square.top == true)
-                {
-                    Gizmos.DrawLine(square.topLeft, square.topRight);
-                }
-                if (square.bottom == true)
-                {
-                    Gizmos.DrawLine(square.bottomLeft, square.bottomRight);
-                }
-                if (square.region == "boss")
-                {
-                    Gizmos.color = Color.red;
-                    Gizmos.DrawSphere(square.location, 0.5f / square.regionValue);
+                    Gizmos.DrawLine(square.corners[i], square.corners[(i + 1) % 4]);
                 }
             }
-            Gizmos.color = Color.green;
-            foreach(Square square in placesOfIntrest)
-            {
-                Gizmos.DrawSphere(square.location, cubeSize/2);
-            }
-            Gizmos.color = Color.blue;
-            foreach (Square square in bossLocations)
-            {
-                Gizmos.DrawSphere(square.location, cubeSize/2);
-            }
-
+        }
+        Gizmos.color = Color.green;
+        foreach (Square square in placesOfIntrest)
+        {
+            Gizmos.DrawSphere(square.location, cubeSize / 2);
+        }
+        Gizmos.color = Color.blue;
+        foreach (Square square in bossLocations)
+        {
+            Gizmos.DrawSphere(square.location, cubeSize / 2);
         }
     }
     [Serializable]

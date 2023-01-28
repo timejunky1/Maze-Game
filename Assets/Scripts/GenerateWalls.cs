@@ -40,25 +40,27 @@ public class MeshData
         verticesL = new List<Vector3>();
         uvsL = new List<Vector2>();
         trianglesL = new List<int>();
+        squareObject = new GameObject("Mesh", typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider));
+        mesh = new Mesh();
     }
     void GetNewValues()
     {
-        if(curSquare.top)
+        if (curSquare.sides[0])//top
         {
             newTopLeft += new Vector3(0, 0, -width);
             newTopRight += new Vector3(0, 0, -width);
         }
-        if(curSquare.right)
+        if (curSquare.sides[1])//right
         {
             newTopRight += new Vector3(-width, 0, 0);
             newBotRight += new Vector3(-width, 0, 0);
         }
-        if(curSquare.bottom)
+        if (curSquare.sides[2])
         {
             newBotRight += new Vector3(0, 0, +width);
             newBotLeft += new Vector3(0, 0, +width);
         }
-        if (curSquare.left)
+        if (curSquare.sides[3])
         {
             newBotLeft += new Vector3(width, 0, 0);
             newTopLeft += new Vector3(width, 0, 0);
@@ -66,8 +68,9 @@ public class MeshData
     }
     void AddVertices()
     {
+        verticesL.Clear();
         Vector3 verticy = newTopLeft;
-        if (curSquare.topExtend1)
+        if (curSquare.extends[0])
         {
             verticy += new Vector3(-width, 0, width);
             AddVertLine(verticy);
@@ -77,8 +80,7 @@ public class MeshData
         topLeft = verticesL.Count;
         AddVertLine(newTopLeft);
         verticy = newTopRight;
-        ///top done
-        if (curSquare.rightExtend1)
+        if (curSquare.extends[2])
         {
             verticy += new Vector3(width, 0, width);
             AddVertLine(verticy);
@@ -87,7 +89,7 @@ public class MeshData
         }
         topRight = verticesL.Count;
         AddVertLine(newTopRight);
-        if (curSquare.topExtend2)
+        if (curSquare.extends[1])
         {
             verticy += new Vector3(width, 0, 0);
             AddVertLine(verticy);
@@ -95,7 +97,7 @@ public class MeshData
             AddVertLine(verticy);
         }
         verticy = newBotRight;
-        if (curSquare.bottomExtend1)
+        if (curSquare.extends[4])
         {
             verticy += new Vector3(width, 0, -width);
             AddVertLine(verticy);
@@ -104,7 +106,7 @@ public class MeshData
         }
         botRight = verticesL.Count;
         AddVertLine(newBotRight);
-        if (curSquare.rightExtend2)
+        if (curSquare.extends[3])
         {
             verticy += new Vector3(0, 0, -width);
             AddVertLine(verticy);
@@ -112,7 +114,7 @@ public class MeshData
             AddVertLine(verticy);
         }
         verticy = newBotLeft;
-        if (curSquare.leftExtend1)
+        if (curSquare.extends[6])
         {
             verticy += new Vector3(-width, 0, -width);
             AddVertLine(verticy);
@@ -121,7 +123,7 @@ public class MeshData
         }
         botLeft = verticesL.Count;
         AddVertLine(newBotLeft);
-        if (curSquare.bottomExtend2)
+        if (curSquare.extends[5])
         {
             verticy += new Vector3(-width, 0, 0);
             AddVertLine(verticy);
@@ -129,7 +131,7 @@ public class MeshData
             AddVertLine(verticy);
         }
         verticy = newTopLeft;
-        if (curSquare.leftExtend2)
+        if (curSquare.extends[7])
         {
             verticy += new Vector3(0, 0, width);
             AddVertLine(verticy);
@@ -161,23 +163,24 @@ public class MeshData
 
     void CreateWalls()
     {
+        trianglesL.Clear();
         Debug.Log(topLeft + ", " + topRight + ", " + botRight + ", " + botLeft);
         int count = 0;
         int oldCount = 0;
         while(count < verticesL.Count/2 - 1)
         {
             Debug.Log(count);
-            if (count == topLeft/2 && curSquare.top == false)
+            if (count == topLeft/2 && curSquare.sides[0] == false)
             {
                 count = 1;
             }
             if (count >= topRight/2  && count < botRight/2)
             {
-                count = EvaluateSide(curSquare.right, curSquare.topExtend2, curSquare.bottomExtend1, topRight, botRight, count);
+                count = EvaluateSide(curSquare.sides[1], curSquare.extends[1], curSquare.extends[4], topRight, botRight, count);
             }
             //if (count >= botRight / 2 && count < botLeft / 2)
             //{
-            //    count = EvaluateSide(curSquare.bottom, curSquare.rightExtend2, curSquare.leftExtend1, botRight, botLeft, count);
+            //    count = EvaluateSide(curSquare.sides[2], curSquare.extends[3], curSquare.extends[6], botRight, botLeft, count);
             //}
             if (count < oldCount)
             {
@@ -192,7 +195,7 @@ public class MeshData
             oldCount = count;
             count += 1;
         }
-        if (curSquare.left && curSquare.bottomExtend2 == false)
+        if (curSquare.sides[3] && curSquare.extends[5] == false)
         {
             trianglesL.Add(count * 2);
             trianglesL.Add(count * 2 + 1);
@@ -259,19 +262,19 @@ public class MeshData
         width = wallWidth;
         mat = material;
 
-        newTopLeft = curSquare.topLeft;
-        newTopRight = curSquare.topRight;
-        newBotLeft = curSquare.bottomLeft;
-        newBotRight = curSquare.bottomRight;
+        newTopLeft = curSquare.corners[0];
+        newTopRight = curSquare.corners[1];
+        newBotRight = curSquare.corners[2];
+        newBotLeft = curSquare.corners[3];
 
         GetNewValues();
         AddVertices();
         AddUvs();
-        //CreateFloor();
         CreateWalls();
+        CreateFloor();
         ConvertLists();
 
-        mesh = new Mesh();
+        mesh.Clear();
         mesh.vertices = vertices;
         mesh.uv = uvs;
         mesh.triangles = triangles;
@@ -280,10 +283,6 @@ public class MeshData
 
     public void RenderMesh()
     {
-        if (squareObject == null)
-        {
-            squareObject = new GameObject("Mesh", typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider));
-        }
         squareObject.GetComponent<MeshFilter>().mesh = mesh;
         squareObject.GetComponent<MeshRenderer>().material = mat;
         squareObject.GetComponent<MeshCollider>().sharedMesh = mesh;
@@ -292,13 +291,6 @@ public class MeshData
     public void UpdateMesh(Square square, Material material, int wallHeight, int wallWidth)
     {
         CreateMesh(square, material, wallHeight, wallWidth);
-
-        if(squareObject == null)
-        {
-            squareObject = new GameObject("Mesh", typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider));
-        }
-        squareObject.GetComponent<MeshFilter>().mesh.Clear();
-        squareObject.GetComponent<MeshCollider>().sharedMesh.Clear();
 
         squareObject.GetComponent<MeshFilter>().mesh = mesh;
         squareObject.GetComponent<MeshCollider>().sharedMesh = mesh;
