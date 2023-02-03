@@ -30,7 +30,7 @@ public class Mazegeneration
         {
             for (int y = 0; y < baseSize; y++)
             {
-                Square square = new Square(xpos - Mathf.CeilToInt(baseSize/2) + x, ypos - Mathf.CeilToInt(baseSize/2) + y, cubeSize, mazeSize);
+                Square square = new Square(xpos - Mathf.FloorToInt(baseSize/2) + x, ypos - Mathf.FloorToInt(baseSize/2) + y, cubeSize, mazeSize);
                 if (x == 0) { square.sides[1] = false; } else { square.sides[3] = false; }
                 if (x == baseSize - 1) { square.sides[3] = false; } else { square.sides[1] = false; }
                 if (y == 0) { square.sides[0] = false; } else { square.sides[2] = false; }
@@ -284,40 +284,43 @@ public class Square
 
     public void calculateExtends(Square[,] grid)
     {
-            int x = 1; int y = 1;int signX = -1; int signY = 1;     
-            for( int i = 0; i < 4; i++ )
-            {
-                if(i == 1 || i == 3)
-                {
-                    signX = -signX;
-                }
-                if (grid[x + -(i % 2 - 1), y - i % 2] != null && sides[i] && sides[(i+1)%4] == false && grid[x + -(i%2-1), y - i%2].sides[i] == false && grid[x -signX, y + signY].extends[(i*2+6)%8] == false)//bot
-                {
-                    sides[(i*2+1)%8] = true;
-                }
-                if(i == 1 || i == 3)
-                {
-                    signY = -signY;
-                    signX = -signX;
-                }
-                if (grid[x + (i % 2 - 1), y + i % 2] != null && sides[i] && sides[(i+3)%4] == false && grid[x + (i % 2 - 1), y + i%2].sides[i] == false && grid[x + signX, y + signY].extends[(i*2+3)%8] == false)
-                {
-                    extends[(i * 2)%8] = true;
-                }
-                if(i == 1 || i == 3)
-                {
-                    signX = -signX;
-                }
+            int x = 1; int y = 1;int signX = -1; int signY = 1;
+        //for( int i = 0; i < 4; i++ )
+        //{
+        //    if(i == 1 || i == 3)
+        //    {
+        //        signX = -signX;
+        //    }
+        //    if (grid[x + -(i % 2 - 1), y - i % 2] != null && sides[i] && sides[(i+1)%4] == false && grid[x + -(i%2-1), y - i%2].sides[i] == false && grid[x -signX, y + signY].extends[(i*2+6)%8] == false)//bot
+        //    {
+        //        extends[(i*2+1)%8] = true;
+        //    }
+        //    if(i == 1 || i == 3)
+        //    {
+        //        signY = -signY;
+        //        signX = -signX;
+        //    }
+        //    if (grid[x + (i % 2 - 1), y + i % 2] != null && sides[i] && sides[(i+3)%4] == false && grid[x + (i % 2 - 1), y + i%2].sides[i] == false && grid[x + signX, y + signY].extends[(i*2+3)%8] == false)
+        //    {
+        //        extends[(i * 2)%8] = true;
+        //    }
+        //    if(i == 1 || i == 3)
+        //    {
+        //        signX = -signX;
+        //    }
 
-            }
+        //}
+        if (grid[x + 1, y] != null)
+        {
             if (sides[0] && sides[1] == false && grid[x + 1, y].sides[0] == false && grid[x + 1, y + 1].extends[6] == false)//top
             {
                 extends[1] = true;
             }
             if (sides[2] && sides[1] == false && grid[x + 1, y].sides[2] == false && grid[x + 1, y - 1].extends[7] == false)
             {
-                extends[5] = true;
+                extends[4] = true;
             }
+        }
         if(grid[x - 1, y] != null)
         {
             if (sides[0] && sides[3] == false && grid[x - 1, y].sides[0] == false && grid[x - 1, y + 1].extends[3] == false)
@@ -333,11 +336,11 @@ public class Square
         {
             if (sides[3] && sides[2] == false && grid[x, y - 1].sides[3] == false && grid[x - 1, y - 1].extends[1] == false)
             {
-                extends[3] = true;
+                extends[6] = true;
             }
             if (sides[1] && sides[2] == false && grid[x, y - 1].sides[1] == false && grid[x + 1, y - 1].extends[0] == false)//right
             {
-                extends[2] = true;
+                extends[3] = true;
             }
         }
         if(grid[x, y + 1] != null)
@@ -348,7 +351,7 @@ public class Square
             }     
             if (sides[3] && sides[0] == false && grid[x, y + 1].sides[3] == false && grid[x - 1, y + 1].extends[4] == false)//left
             {
-                extends[3] = true;
+                extends[7] = true;
             }
         }
     }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using UnityEngine;
 
@@ -169,20 +170,19 @@ public class MeshData
         int oldCount = 0;
         while(count < verticesL.Count/2 - 1)
         {
-            Debug.Log(count);
-            if (count == topLeft/2 && curSquare.sides[0] == false)
+            if (count == topLeft / 2 && curSquare.sides[0] == false)
             {
-                count = 1;
+                count = EvaluateSide(curSquare.sides[0], false, curSquare.extends[2], topLeft, topRight, count);
             }
-            if (count >= topRight/2  && count < botRight/2)
+            if (count >= topRight / 2 && count < botRight / 2)
             {
                 count = EvaluateSide(curSquare.sides[1], curSquare.extends[1], curSquare.extends[4], topRight, botRight, count);
             }
-            //if (count >= botRight / 2 && count < botLeft / 2)
-            //{
-            //    count = EvaluateSide(curSquare.sides[2], curSquare.extends[3], curSquare.extends[6], botRight, botLeft, count);
-            //}
-            if (count < oldCount)
+            if (count >= botRight / 2 && count < botLeft / 2)
+            {
+                count = EvaluateSide(curSquare.sides[2], curSquare.extends[3], curSquare.extends[6], botRight, botLeft, count);
+            }
+            if (count == verticesL.Count/2 - 1)
             {
                 break;
             }
@@ -195,7 +195,7 @@ public class MeshData
             oldCount = count;
             count += 1;
         }
-        if (curSquare.sides[3] && curSquare.extends[5] == false)
+        if (curSquare.sides[3] && curSquare.extends[5] == false && curSquare.extends[7] == false)
         {
             trianglesL.Add(count * 2);
             trianglesL.Add(count * 2 + 1);
@@ -209,12 +209,10 @@ public class MeshData
     {
         if (count == pointValue1/2 && eExtention1 == false && eSide == false)
         {
-            Debug.Log("A");
             return NextVert(eExtention2, pointValue2) / 2;
         }
         if (count - 2 == pointValue1/2 && eSide == false)
         {
-            Debug.Log("B");
             return NextVert(eExtention2, pointValue2) / 2;
         }
         return count;

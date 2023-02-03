@@ -47,17 +47,20 @@ public class ShowMaze: MonoBehaviour
         Square[,] sampleSquares = new Square[3, 3];
         foreach (Square square in places)
         {
-            for (int y = -1; y < sampleSquares.GetLength(0) - 1; y++)
+            if (wallWidth > 0)
             {
-                for (int x = -1; x < sampleSquares.GetLength(1) - 1; x++)
+                for (int y = -1; y < sampleSquares.GetLength(0) - 1; y++)
                 {
-                    if (square.xIndex >= 1 && square.yIndex >= 1 && square.xIndex < grid.GetLength(0) - 1 && square.yIndex < grid.GetLength(1) - 1)
+                    for (int x = -1; x < sampleSquares.GetLength(1) - 1; x++)
                     {
-                        sampleSquares[x + 1, y + 1] = grid[square.xIndex + x, square.yIndex + y];
-                    }
-                    else
-                    {
-                        sampleSquares[x + 1, y + 1] = null;
+                        if (square.xIndex >= 1 && square.yIndex >= 1 && square.xIndex < grid.GetLength(0) - 1 && square.yIndex < grid.GetLength(1) - 1)
+                        {
+                            sampleSquares[x + 1, y + 1] = grid[square.xIndex + x, square.yIndex + y];
+                        }
+                        else
+                        {
+                            sampleSquares[x + 1, y + 1] = null;
+                        }
                     }
                 }
             }
@@ -73,11 +76,11 @@ public class ShowMaze: MonoBehaviour
             Debug.Log("SQUARE");
             for (int i = 0; i < square.sides.Length; i++)
             {
-                Debug.Log(square.sides[i]);
+                Debug.Log(i + ", " + square.sides[i]);
             }
             for (int i = 0; i < square.extends.Length; i++)
             {
-                Debug.Log(square.extends[i]);
+                Debug.Log(i+", "+square.extends[i]);
             }
         }
         foreach (Square s in places)
