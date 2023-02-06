@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: af4a90a2d547c11418fbf09673addfab, type: 3}
+  m_Name: New Text Ure Settings
+  m_EditorClassIdentifier: 
+  autoUpdate: 0
+  defaultmaterial: {fileID: 2100000, guid: 11c726ddd2dd7f74cbb39bd3d243fd71, type: 2}
+  regions:
+  - regionName: Ice
+    material: {fileID: 2100000, guid: 73aaa20544c2d2e46b54ca9daef0b20e, type: 2}
+    color: {r: 0.08877714, g: 0.8962264, b: 0.8036816, a: 0}
+  - regionName: Jungle
+    material: {fileID: 2100000, guid: 4f7cc834a2e303143a5990acc2483762, type: 2}
+    color: {r: 0.016687432, g: 0.23584908, b: 0.052225728, a: 0}
+  - regionName: Fire
+    material: {fileID: 2100000, guid: 9b33d98fd84cc764c9ad7bf4d8def645, type: 2}
+    color: {r: 0.735849, g: 0.087800086, b: 0, a: 0}
+  regionNames:
+  - Ice
+  - Jungle
+  - Fire

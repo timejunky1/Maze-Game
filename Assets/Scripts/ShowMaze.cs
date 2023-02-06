@@ -9,117 +9,134 @@ using UnityEngine.Rendering;
 
 public class ShowMaze: MonoBehaviour
 {
-    [SerializeField] int mazeSize;
-    [SerializeField] int cubeSize;
-    [SerializeField] int wallHeight;
-    [SerializeField] int wallWidth;
-    [SerializeField] int backTrackDst;
-    [SerializeField] int maxPathLength;
-    [Range(0, 40)]
-    [SerializeField] int bossDst;
-    [SerializeField] int amountOfBosses;
-    [SerializeField] int baseSize;
-    [SerializeField] int regionSpread;
-    [SerializeField] int bossChance;
-    [SerializeField] Material defaultmaterial;
-    [SerializeField]
-    Region[] regions;
-    Dictionary<string, Material> materials = new Dictionary<string, Material>();
-    List<Square> placesOfIntrest = new List<Square>();
-    List<Square> bossLocations = new List<Square>();
-    Square[,] grid;
-    List<Square> places = new List<Square>();
+    public MazeWallsSettings wallsSettings;
+    public MazeSettings mazeSettings;
+    public MazeSettings smallMazeSettings;
+    public TextUreSettings textUreSettings;
+
+    List<Vector2Int> placesOfIntrest = new List<Vector2Int>();
+    Vector2Int[] bossLocations;
+    List<Vector2Int> places = new List<Vector2Int>();
     Mazegeneration maze = new Mazegeneration();
+    bool drawMap = false;
     // Start is called before the first frame update
     void Start()
     {
-        string[] regs = new string[regions.Length];
-        for (int i = 0;i < regions.Length; i++)
+        textUreSettings.ReloadDicts();
+        LoadMaze();
+    }
+
+    //private void OnValidate()
+    //{
+    //    if (smallMazeSettings.autoUpdate)
+    //    {
+    //        DrawMazeInEditor();
+    //    }
+    //}
+
+    void RenderMaze()
+    {
+        foreach (Vector2Int point in places)
         {
-            regs[i] = regions[i].regionName;
-            materials.Add(regions[i].regionName, regions[i].Material);
-        }
-        grid = maze.GenerateMaze(mazeSize, cubeSize, backTrackDst, maxPathLength, bossDst, amountOfBosses, baseSize, regionSpread, bossChance, regs);
-        places = maze.visitedSquares;
-        Debug.Log(places.Count);
-        placesOfIntrest = maze.PlacesOfIntrest;
-        bossLocations = maze.bossLocations;
-        Square[,] sampleSquares = new Square[3, 3];
-        foreach (Square square in places)
-        {
-            if (wallWidth > 0)
+            string region = maze.matrix[point.x, point.y].region;
+
+            if (textUreSettings.regionNames.Contains(region))
             {
-                for (int y = -1; y < sampleSquares.GetLength(0) - 1; y++)
-                {
-                    for (int x = -1; x < sampleSquares.GetLength(1) - 1; x++)
-                    {
-                        if (square.xIndex >= 1 && square.yIndex >= 1 && square.xIndex < grid.GetLength(0) - 1 && square.yIndex < grid.GetLength(1) - 1)
-                        {
-                            sampleSquares[x + 1, y + 1] = grid[square.xIndex + x, square.yIndex + y];
-                        }
-                        else
-                        {
-                            sampleSquares[x + 1, y + 1] = null;
-                        }
-                    }
-                }
-            }
-            square.calculateExtends(sampleSquares);
-            if (materials.ContainsKey(square.region))
-            {
-                square.GetMeshData(materials[square.region], wallHeight, wallWidth);
+                maze.matrix[point.x, point.y].GetMeshData(wallsSettings.wallHeight, wallsSettings.wallWidth, textUreSettings.materials[region], textUreSettings.colors[region]);
             }
             else
             {
-                square.GetMeshData(defaultmaterial, wallHeight, wallWidth);
-            }
-            Debug.Log("SQUARE");
-            for (int i = 0; i < square.sides.Length; i++)
-            {
-                Debug.Log(i + ", " + square.sides[i]);
-            }
-            for (int i = 0; i < square.extends.Length; i++)
-            {
-                Debug.Log(i+", "+square.extends[i]);
+                maze.matrix[point.x, point.y].GetMeshData(wallsSettings.wallHeight, wallsSettings.wallWidth, textUreSettings.defaultmaterial, Color.green);
             }
         }
-        foreach (Square s in places)
+        foreach (Vector2Int point in places)
         {
-            s.RenderMesh();
+            maze.matrix[point.x, point.y].RenderMesh(true);
         }
     }
-
     // Update is called once per frame
+    void LoadMaze()
+    {
+        maze.GenerateMaze(mazeSettings);
+        maze.CreateOutsideWall(mazeSettings, wallsSettings, textUreSettings.defaultmaterial);
+        placesOfIntrest = maze.placesOfIntrest;
+        maze.CalculatePlacesOfIntrest(mazeSettings, placesOfIntrest, textUreSettings.regionNames);
+        places = maze.visitedSquares;
+        bossLocations = maze.bossLocations;
+        RenderMaze();
+    }
+    void DrawMazeInEditor()
+    {
+        GameObject mazeParent = GameObject.Find("MazeWalls");
+        for (int i = 0; i < mazeParent.transform.childCount; i++)
+        {
+            Destroy(mazeParent.transform.GetChild(0));
+        }
+        textUreSettings.ReloadDicts();
+        maze.GenerateMaze(smallMazeSettings);
+        maze.CreateOutsideWall(smallMazeSettings, wallsSettings, textUreSettings.defaultmaterial);
+        placesOfIntrest = maze.placesOfIntrest;
+        maze.CalculatePlacesOfIntrest(smallMazeSettings, placesOfIntrest, textUreSettings.regionNames);
+        places = maze.visitedSquares;
+        bossLocations = maze.bossLocations;
+        RenderMaze();
+        Debug.Log("mazeCreated");
+    }
     private void OnDrawGizmos()
     {
-        foreach (Square square in places)
+        if (places.Count > 0)
         {
-            Gizmos.color = Color.gray;
-            for (int i = 0; i < 4; i++)
+            foreach (Vector2Int point in places)
             {
-                if (square.sides[i] == true)
+                Gizmos.color = Color.gray;
+                for (int i = 0; i < 4; i++)
                 {
-                    Gizmos.DrawLine(square.corners[i], square.corners[(i + 1) % 4]);
+                    if (maze.matrix[point.x, point.y].sides[i] == true)
+                    {
+                        Gizmos.DrawLine(maze.matrix[point.x, point.y].corners[i], maze.matrix[point.x, point.y].corners[(i + 1) % 4]);
+                    }
+                }
+                if (maze.matrix[point.x, point.y].region == textUreSettings.regionNames[0])
+                {
+                    Gizmos.color = Color.blue;
+                }
+                else if (maze.matrix[point.x, point.y].region == textUreSettings.regionNames[1])
+                {
+                    Gizmos.color = Color.green;
+                }
+                else if (maze.matrix[point.x, point.y].region == textUreSettings.regionNames[2])
+                {
+                    Gizmos.color = Color.red;
+                }
+                else
+                {
+                    continue;
+                }
+                Debug.Log(maze.matrix[point.x, point.y].regionValue);
+                Gizmos.DrawSphere(maze.matrix[point.x, point.y].location, (mazeSettings.cubeSize / (2 * (maze.matrix[point.x,point.y].regionValue + 1))));
+                
+            }
+
+        }
+        if (placesOfIntrest.Count > 0 && textUreSettings.regions.Length > 0)
+        {
+            try
+            {
+                Gizmos.color = Color.white;
+                foreach (Vector2Int point in placesOfIntrest)
+                {
+                    Gizmos.DrawSphere(maze.matrix[point.x, point.y].location, mazeSettings.cubeSize / (2 * 4));
+                }
+                Gizmos.color = Color.black;
+                foreach (Vector2Int point in bossLocations)
+                {
+                    Gizmos.DrawSphere(maze.matrix[point.x, point.y].location, mazeSettings.cubeSize / 2);
                 }
             }
+            catch
+            {
+                Debug.Log("Some Gismos Were not Drawn");
+            }
         }
-        Gizmos.color = Color.green;
-        foreach (Square square in placesOfIntrest)
-        {
-            Gizmos.DrawSphere(square.location, cubeSize / 2);
-        }
-        Gizmos.color = Color.blue;
-        foreach (Square square in bossLocations)
-        {
-            Gizmos.DrawSphere(square.location, cubeSize / 2);
-        }
-    }
-    [Serializable]
-    struct Region
-    {
-        [SerializeField]
-        public string regionName;
-        [SerializeField]
-        public Material Material;
     }
 }
