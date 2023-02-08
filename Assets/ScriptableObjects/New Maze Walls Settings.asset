@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: New Maze Walls Settings
   m_EditorClassIdentifier: 
   autoUpdate: 0
-  wallHeight: 10
+  wallHeight: 20
   wallWidth: 2

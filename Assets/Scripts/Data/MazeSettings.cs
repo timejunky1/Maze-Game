@@ -4,6 +4,7 @@ using UnityEngine;
 [CreateAssetMenu()]
 public class MazeSettings : UpdatableData
 {
+    public bool newMaze;
     public bool createEntrance = false;
     public int mazeSize = 50;
     public int cubeSize = 10;

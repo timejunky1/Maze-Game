@@ -3,49 +3,55 @@ using System.CodeDom.Compiler;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Threading;
+using System.Threading.Tasks;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering;
+using static UnityEditor.FilePathAttribute;
 
 public class Mazegeneration
 {
     public SquareData[,] matrix; 
     public List<Vector2Int> visitedSquares = new List<Vector2Int>();
     public List<Vector2Int> placesOfIntrest = new List<Vector2Int>();
-    public Vector2Int[] bossLocations;
+    public Vector3Int[] bossLocations;
     public List<Vector2Int> entranceCubes = new List<Vector2Int>();
+    public List<Vector2Int> lockedSquares = new List<Vector2Int>();
+    public List<Vector3> wallSquares = new List<Vector3>();
     bool isFirstMaze = true;
     int regionLoadIndex;
-
     public void GenerateMaze(MazeSettings maze)
     {
         regionLoadIndex= 0;
         placesOfIntrest.Clear();
-        matrix = new SquareData[maze.mazeSize, maze.mazeSize];
-        List<Vector2Int> lockedSquares = new List<Vector2Int>();
+        visitedSquares.Clear();
         int xpos = Mathf.CeilToInt(maze.mazeSize / 2);
         int ypos = Mathf.CeilToInt(maze.mazeSize / 2);
+        Debug.Log(xpos + ", " + ypos);
+        if (isFirstMaze && maze.baseSize>0)
+        {
+            matrix = new SquareData[maze.mazeSize, maze.mazeSize];
+            CreateBase(maze, xpos, ypos);
+            isFirstMaze= false;
+        }
 
 
         for (int x = 0;x < matrix.GetLength(0); x++)
         {
             for (int y = 0; y < matrix.GetLength(1); y++)
             {
-                if(lockedSquares.Contains(new Vector2Int(x, y)))
+                if (lockedSquares.Contains(new Vector2Int(x, y)))
                 {
+                    matrix[x, y].visited = false;
+                    Debug.Log("skipped");
                     continue;
                 }
-                matrix[x,y] = new SquareData(x, y, maze.cubeSize, maze.mazeSize);
+                Vector3 location = new Vector3((x + 1) * maze.cubeSize - (maze.mazeSize * maze.cubeSize / 2) - maze.cubeSize / 2, 0, (y + 1) * maze.cubeSize - (maze.mazeSize * maze.cubeSize / 2) - maze.cubeSize / 2);
+                SquareData square = new SquareData(maze.cubeSize, location);
+                matrix[x,y] = new SquareData(maze.cubeSize, location);
             }
-        }
-        if (isFirstMaze && maze.baseSize>0)
-        {
-            CreateBase(maze, xpos, ypos);
-        }
-        if (maze.createEntrance)
-        {
-            CreateEntrance(maze);
         }
         Stack<Vector2Int> visited = new Stack<Vector2Int>();
         List<Vector2Int> options = new List<Vector2Int>();
@@ -53,50 +59,33 @@ public class Mazegeneration
         int visitCount = 1;
         int count = 0;
         bool end = true;
+        Vector2Int option;
         visitedSquares.Add(new Vector2Int(xpos,ypos));
         while (mazeComplete == false)
         {
             count++;
             matrix[xpos, ypos].visited = true;
-            options = AnalizeOptions(xpos, ypos);
+            options = AnalizeOptions(xpos, ypos, 1);
             if (visited.Count == 0 && options.Count == 0)
             {
                 mazeComplete= true;
             }
             if (options.Count > 0 && visited.Count < maze.maxPathLength)
             {
+                Debug.Log("Has Options");
                 end = true;
                 visitCount++;
                 visited.Push(new Vector2Int(xpos, ypos));
-                Vector2Int option = options[UnityEngine.Random.Range(0, options.Count - 1)];
+                option = options[UnityEngine.Random.Range(0, options.Count - 1)];
                 int newXPos = option.x;
                 int newYPos = option.y;
+                ManageTurn(xpos, ypos, newXPos, newYPos);
                 if (visited.Count == 0 && visitCount>10)//change so that it forces the last direction option when back at start
                 {
                     visited.Push(new Vector2Int(xpos, ypos));
                     option = options[options.Count - 1];
                     newXPos = option.x;
                     newYPos = option.y;
-                }
-                if (xpos < newXPos)
-                {
-                    matrix[xpos, ypos].sides[1] = false;
-                    matrix[newXPos, newYPos].sides[3] = false;
-                }
-                if (xpos > newXPos)
-                {
-                    matrix[xpos, ypos].sides[3] = false;
-                    matrix[newXPos, newYPos].sides[1] = false;
-                }
-                if (ypos < newYPos)
-                {
-                    matrix[xpos, ypos].sides[0] = false;
-                    matrix[newXPos, newYPos].sides[2] = false;
-                }
-                if (ypos > newYPos)
-                {
-                    matrix[xpos, ypos].sides[2] = false;
-                    matrix[newXPos, newYPos].sides[0] = false;
                 }
                 xpos = newXPos;
                 ypos = newYPos;
@@ -116,115 +105,201 @@ public class Mazegeneration
             else { mazeComplete = true; }
             
         }
-        foreach(Vector2Int point in entranceCubes)
+        if (maze.createEntrance)
         {
-            if (!matrix[point.x, point.y].visited)
-            {
-                visitedSquares.Add(new Vector2Int(point.x, point.y));
-            }
+            CreateEntrance(maze);
         }
+        CreateWrapedWall(maze);
         foreach (Vector2Int pos in visitedSquares)
         {
             matrix[pos.x,pos.y].extends = CalcualateExtends(matrix[pos.x, pos.y].sides, pos.x,pos.y);
         }
     }
-    public void CreateOutsideWall(MazeSettings maze, MazeWallsSettings walls, Material material)
+    public void SetLockedSquares()
     {
-        Debug.Log("CreateOutsideWall");
-        GameObject outsideWall = new GameObject("Mesh", typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider));
-        outsideWall.transform.parent = GameObject.Find("MazeWalls").transform;
-        outsideWall.name = "OutsideWall";
-        Vector3 vector = matrix[Mathf.FloorToInt(maze.mazeSize / 2), Mathf.FloorToInt(maze.mazeSize / 2)].corners[1];
-        int halfMaze = Mathf.FloorToInt(maze.mazeSize / 2);
-        Mesh mesh = new Mesh();
-        Vector3[] verticies = new Vector3[]{
-            vector += new Vector3(maze.cubeSize - walls.wallWidth - maze.cubeSize, 0, halfMaze * maze.cubeSize + ((maze.mazeSize%2 - 1) * maze.cubeSize)),
-            vector + Vector3.up * walls.wallHeight,
-            vector += new Vector3(halfMaze * maze.cubeSize + ((maze.mazeSize%2 - 1) * maze.cubeSize) ,0,0),
-            vector + Vector3.up * walls.wallHeight,
-            vector += new Vector3(0,0,-maze.mazeSize * maze.cubeSize),
-            vector + Vector3.up * walls.wallHeight,
-            vector += new Vector3(-maze.mazeSize*maze.cubeSize,0,0),
-            vector + Vector3.up * walls.wallHeight,
-            vector += new Vector3(0,0,maze.mazeSize * maze.cubeSize),
-            vector + Vector3.up * walls.wallHeight,
-            vector += new Vector3(halfMaze * maze.cubeSize + 2*walls.wallWidth, 0, 0),
-            vector + Vector3.up * walls.wallHeight,};
-        Vector2[] uvs = new Vector2[verticies.Length];
-        for (int i = 0;i < verticies.Length; i++)
+        foreach(Vector2Int point in lockedSquares)
         {
-            uvs[i] = verticies[i];
+            for (int i = 0; i < matrix[point.x, point.y].sides.Length; i++)
+            {
+                matrix[point.x, point.y].sides[i] = false;
+            }
+            if(point.y < matrix.GetLength(1) - 1 && matrix[point.x, point.y + 1].isLocked == false)
+            {
+                matrix[point.x, point.y].sides[0] = true;
+            }
+            if (point.x < matrix.GetLength(0) - 1 && matrix[point.x + 1, point.y].isLocked == false)
+            {
+                matrix[point.x, point.y].sides[1] = true;
+            }
+            if (point.y > 0 && matrix[point.x, point.y - 1].isLocked == false)
+            {
+                matrix[point.x, point.y].sides[2] = true;
+            }
+            if (point.x > 0 && matrix[point.x - 1, point.y].isLocked == false)
+            {
+                matrix[point.x, point.y].sides[3] = true;
+            }
         }
-        int[] triangles = new int[(verticies.Length/2 - 1)*6];
-        int triangleIndex = 0;
-        for (int i = 0; i < verticies.Length/2 - 1; i++)
+        foreach (Vector2Int pos in lockedSquares)
         {
-            triangles[triangleIndex] = i * 2;
-            triangles[triangleIndex + 1] = i * 2 + 2;
-            triangles[triangleIndex + 2] = i * 2 + 1;
-            triangles[triangleIndex + 3] = i * 2 + 1;
-            triangles[triangleIndex + 4] = i * 2 + 2;
-            triangles[triangleIndex + 5] = i * 2 + 3;
-            triangleIndex += 6;
+            matrix[pos.x, pos.y].extends = CalcualateExtends(matrix[pos.x, pos.y].sides, pos.x, pos.y);
         }
-        mesh.vertices = verticies;
-        mesh.uv = uvs;
-        mesh.triangles = triangles;
-        mesh.RecalculateNormals();
-        outsideWall.GetComponent<MeshFilter>().mesh = mesh;
-        outsideWall.GetComponent<MeshCollider>().sharedMesh = mesh;
-        outsideWall.GetComponent<MeshRenderer>().material = material;
+    }
+    void ManageTurn(int xpos, int ypos, int newXPos, int newYPos)
+    {
+        if (ypos < newYPos)//up
+        {
+            matrix[xpos, ypos].sides[0] = false;
+            matrix[newXPos, newYPos].sides[2] = false;
+        }
+        if (xpos < newXPos)//right
+        {
+            matrix[xpos, ypos].sides[1] = false;
+            matrix[newXPos, newYPos].sides[3] = false;
+        }
+        if (ypos > newYPos)//down
+        {
+            matrix[xpos, ypos].sides[2] = false;
+            matrix[newXPos, newYPos].sides[0] = false;
+        }
+        if (xpos > newXPos)//left
+        {
+            matrix[xpos, ypos].sides[3] = false;
+            matrix[newXPos, newYPos].sides[1] = false;
+        }
+    }
+    void CreateWrapedWall(MazeSettings maze)// keeps on looping fix it
+    {
+        bool added = false;
+        for (int x = 0; x < matrix.GetLength(0); x++)
+        {
+            for (int y = 0; y < matrix.GetLength(1); y++)
+            {
+                if (x == 0)
+                {
+                    matrix[x, y].sides[2] = false;
+                    matrix[x,y].sides[3] = false;
+                    matrix[x, y].sides[0] = false;
+                    if (!added)
+                    {
+                        visitedSquares.Add(new Vector2Int(x,y));
+                        added = true;
+                    }
+                }
+                if (y == 0)
+                {
+                    matrix[x, y].sides[1] = false;
+                    matrix[x, y].sides[2] = false;
+                    matrix[x, y].sides[3] = false;
+                    if (!added)
+                    {
+                        visitedSquares.Add(new Vector2Int(x, y));
+                        added = true;
+                    }
+                }
+                if (x == matrix.GetLength(0) - 1)
+                {
+                    matrix[x, y].sides[0] = false;
+                    matrix[x, y].sides[1] = false;
+                    matrix[x, y].sides[2] = false;
+                    if (!added)
+                    {
+                        visitedSquares.Add(new Vector2Int(x, y));
+                        added = true;
+                    }
+                }
+                if (y == matrix.GetLength(1) - 1)
+                {
+                    matrix[x, y].sides[3] = false;
+                    matrix[x, y].sides[0] = false;
+                    matrix[x, y].sides[1] = false;
+                    if (!added)
+                    {
+                        visitedSquares.Add(new Vector2Int(x, y));
+                        added = true;
+                    }
+                }
+                added = false;
+            }
+        }
+
     }
     public void CreateEntrance(MazeSettings maze)
     {
-        for (int i = (int)(maze.mazeSize / 2); i < maze.mazeSize; i++)
+        for (int i  = (int)(maze.mazeSize / 2) + (int)maze.baseSize / 2; i < maze.mazeSize; i++)
         {
             int posX = Mathf.CeilToInt(maze.mazeSize / 2);
             int posY = i;
+            Vector3 location = new Vector3((posX + 1) * maze.cubeSize - (maze.mazeSize * maze.cubeSize / 2) - maze.cubeSize / 2, 0, (posY + 1) * maze.cubeSize - (maze.mazeSize * maze.cubeSize / 2) - maze.cubeSize / 2);
+            SquareData square = new SquareData(maze.cubeSize, location);
+            matrix[posX, posY].canSpawn = false;
+            matrix[posX, posY].visited = true;
             matrix[posX, posY].sides[0] = false;
             matrix[posX, posY].sides[2] = false;
-            matrix[posX, posY].canSpawn = false;
-            entranceCubes.Add(new Vector2Int(posX, posY));
+            AddLockedSquare(new Vector2Int(posX, posY));
         }
     }
     public void CreateBase(MazeSettings maze, int xPos, int yPos)
     {
-        SquareData[,] result = new SquareData[maze.baseSize,maze.baseSize];
         for (int x = 0; x < maze.baseSize; x++)
         {
             for (int y = 0; y < maze.baseSize; y++)
             {
-                SquareData square = new SquareData(xPos - Mathf.FloorToInt(maze.baseSize / 2) + x, yPos - Mathf.FloorToInt(maze.baseSize / 2) + y, maze.cubeSize, maze.mazeSize);
+                
+                int xIndex = xPos - Mathf.FloorToInt(maze.baseSize / 2) + x;
+                int yIndex = yPos - Mathf.FloorToInt(maze.baseSize / 2) + y;
+                Vector3 location = new Vector3((xIndex + 1) * maze.cubeSize - (maze.mazeSize * maze.cubeSize / 2) - maze.cubeSize / 2, 0, (yIndex + 1) * maze.cubeSize - (maze.mazeSize * maze.cubeSize / 2) - maze.cubeSize / 2);
+                SquareData square = new SquareData(maze.cubeSize, location);
                 if (x == 0) { square.sides[3] = true; } else { square.sides[3] = false; }
                 if (x == maze.baseSize - 1) { square.sides[1] = true; } else { square.sides[1] = false; }
                 if (y == 0) { square.sides[2] = true; } else { square.sides[2] = false; }
                 if (y == maze.baseSize - 1) { square.sides[0] = true; } else { square.sides[0] = false; }
                 square.canSpawn = false;
-                result[x,y] = square;
+                matrix[xIndex,yIndex] = square;
+                AddLockedSquare(new Vector2Int(xIndex, yIndex));
             }
         }
-        foreach(SquareData sqr in result)
-        {
-            matrix[sqr.xIndex, sqr.yIndex] = sqr;
-        }
+    }
+
+    public void AddLockedSquare(Vector2Int location)
+    {
+        if(lockedSquares.Contains(location)) return;
+        lockedSquares.Add(location);
+        matrix[location.x, location.y].isLocked = true;
+    }
+
+    public void RemoveLockedSquare(Vector2Int location)
+    {
+        if (!lockedSquares.Contains(location)) return;
+        lockedSquares.Remove(location);
+        matrix[location.x, location.y].isLocked = false;
     }
 
     public void CalculatePlacesOfIntrest(MazeSettings maze, List<Vector2Int> placesOfInterest, List<string> regions)
     {
+        for (int x = 0; x < matrix.GetLength(0); x++)
+        {
+            for (int y = 0; y < matrix.GetLength(0); y++)
+            {
+                matrix[x, y].region = "Maze";
+                matrix[x, y].regionValue = maze.regionSpread + 5;
+            }
+        }
         Vector2Int centerPoint = new Vector2Int(Mathf.CeilToInt(maze.mazeSize/2), Mathf.CeilToInt(maze.mazeSize / 2));
-        bossLocations = new Vector2Int[maze.amountOfBosses];
+        bossLocations = new Vector3Int[maze.amountOfBosses];
         int count = 0;
         foreach(Vector2Int point in placesOfInterest)
         {
-            if(count < maze.amountOfBosses && point.x != Mathf.CeilToInt(maze.mazeSize/2) && point.y != Mathf.CeilToInt(maze.mazeSize / 2))
+            if(count < maze.amountOfBosses && point.x > 0 && point.y > 0 && point.x < matrix.GetLength(0) - 1 && point.y < matrix.GetLength(1) - 1)
             {
-                if(centerPoint.x >= maze.bossDst || centerPoint.x <= -maze.bossDst || centerPoint.y >= maze.bossDst || centerPoint.y <= maze.bossDst && matrix[point.x, point.y].canSpawn)
+                if(point.x >= centerPoint.x + maze.bossDst ||  point.x <= centerPoint.x - maze.bossDst || point.y >= centerPoint.y + maze.bossDst || point.y <= centerPoint.y - maze.bossDst && matrix[point.x, point.y].canSpawn)
                 {
                     int percent = UnityEngine.Random.Range(0, 100);
                     if(percent <= maze.bossChance)
                     {
-                        bossLocations[count] = new Vector2Int(point.x, point.y);
-                        string region = regions[UnityEngine.Random.Range(0, regions.Count)];
+                        int rndRegion = UnityEngine.Random.Range(0, regions.Count);
+                        bossLocations[count] = new Vector3Int(point.x, point.y, rndRegion);
+                        string region = regions[rndRegion];
                         foreach (Vector3Int regVal in LoadRegion(point.x, point.y, maze.regionSpread))
                         {
                             if (matrix[regVal.x, regVal.y].regionValue == 0 || matrix[regVal.x, regVal.y].regionValue > regVal.z)
@@ -237,38 +312,34 @@ public class Mazegeneration
                     }
                 }
             }
-            else
-            {
-                matrix[point.x, point.y].regions.Add("PlaceOfIntrest", maze.regionSpread+10);
-            }
         }
     }
 
-    List<Vector2Int> AnalizeOptions(int xpos, int ypos)
+    List<Vector2Int> AnalizeOptions(int xpos, int ypos, int offSet)
     {
         List<Vector2Int> options = new List<Vector2Int>();
-        if (matrix.GetLength(0) - 1 >= xpos + 1 && matrix[xpos + 1, ypos].visited == false)//To the right
+        if (matrix.GetLength(1) - (1+offSet) >= ypos + 1 && matrix[xpos, ypos + 1].visited == false)//Up
+        {
+            options.Add(new Vector2Int(xpos, ypos + 1));
+        }
+        if (matrix.GetLength(0) - (1 + offSet) >= xpos + 1 && matrix[xpos + 1, ypos].visited == false)//To the right
         {
             options.Add(new Vector2Int(xpos + 1,ypos));
+            options.Add(new Vector2Int(xpos + 1,ypos));
         }
-        if (ypos - 1 >= 0 && matrix[xpos, ypos - 1].visited == false)//Down
+        if (ypos - 1 >= offSet && matrix[xpos, ypos - 1].visited == false)//Down
         {
             options.Add(new Vector2Int(xpos, ypos - 1));
-            options.Add(new Vector2Int(xpos, ypos - 1));
         }
-        if (xpos - 1 >= 0 && matrix[xpos - 1, ypos].visited == false)//Left
+        if (xpos - 1 >= offSet && matrix[xpos - 1, ypos].visited == false)//Left
         {
             options.Add(new Vector2Int(xpos - 1, ypos));
-        }
-        if (matrix.GetLength(1) - 1 >= ypos + 1 && matrix[xpos, ypos + 1].visited == false)//Up
-        {
-            options.Add(new Vector2Int(xpos, ypos + 1));
-            options.Add(new Vector2Int(xpos, ypos + 1));
+            options.Add(new Vector2Int(xpos - 1, ypos));
         }
         return options;
     }
 
-    List<Vector3Int> LoadRegion(int xPos, int yPos , int regionSpread)
+    public List<Vector3Int> LoadRegion(int xPos, int yPos , int regionSpread)
     {
         regionLoadIndex++;
         Stack<Vector2Int> visited = new Stack<Vector2Int>();

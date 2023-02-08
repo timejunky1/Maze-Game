@@ -9,17 +9,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 87bd291ccae1e19469fb5f721109fb7b, type: 3}
-  m_Name: New Maze Settings
+  m_Script: {fileID: 11500000, guid: d00fb709fcc091b43a0bb6298a2662c9, type: 3}
+  m_Name: New Editor Cube Settings
   m_EditorClassIdentifier: 
   autoUpdate: 0
-  createEntrance: 1
-  mazeSize: 50
-  cubeSize: 10
-  backTrackDst: 0
-  maxPathLength: 100
-  bossDst: 5
-  amountOfBosses: 30
-  baseSize: 3
-  regionSpread: 5
-  bossChance: 8
+  region: 2
+  canSpawn: 0
+  regionValue: 1
+  Top: 0
+  Right: 0
+  Bot: 0
+  Left: 0

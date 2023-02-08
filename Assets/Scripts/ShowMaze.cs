@@ -11,131 +11,99 @@ public class ShowMaze: MonoBehaviour
 {
     public MazeWallsSettings wallsSettings;
     public MazeSettings mazeSettings;
-    public MazeSettings smallMazeSettings;
     public TextUreSettings textUreSettings;
+    public GameObject Parent;
+    public Transform viewer;
+    public int renderDistance;
+    public int sqrviewerMoveThresholdForUpdaate;
+    Vector2 viewerPosition;
+    Vector2 viewerPositionOld;
 
     List<Vector2Int> placesOfIntrest = new List<Vector2Int>();
-    Vector2Int[] bossLocations;
+    Vector3Int[] bossLocations;
     List<Vector2Int> places = new List<Vector2Int>();
+    List<Vector3Int> renderedPlaces = new List<Vector3Int>();
     Mazegeneration maze = new Mazegeneration();
-    bool drawMap = false;
     // Start is called before the first frame update
     void Start()
     {
+        try
+        {
+            GameObject.Find("EditorsMaze").SetActive(false);
+            GameObject.Find("EditorsCube").SetActive(false);
+        }
+        catch { }
+        maze = new Mazegeneration();
         textUreSettings.ReloadDicts();
+        maze.SetLockedSquares();
         LoadMaze();
     }
 
-    //private void OnValidate()
-    //{
-    //    if (smallMazeSettings.autoUpdate)
-    //    {
-    //        DrawMazeInEditor();
-    //    }
-    //}
-
-    void RenderMaze()
+    private void Update()
     {
-        foreach (Vector2Int point in places)
+        Debug.Log(1);
+        viewerPosition = new Vector2(viewer.position.x, viewer.position.z);
+        Debug.Log(2);
+        if (viewerPosition != viewerPositionOld)
         {
-            string region = maze.matrix[point.x, point.y].region;
-
-            if (textUreSettings.regionNames.Contains(region))
-            {
-                maze.matrix[point.x, point.y].GetMeshData(wallsSettings.wallHeight, wallsSettings.wallWidth, textUreSettings.materials[region], textUreSettings.colors[region]);
-            }
-            else
-            {
-                maze.matrix[point.x, point.y].GetMeshData(wallsSettings.wallHeight, wallsSettings.wallWidth, textUreSettings.defaultmaterial, Color.green);
-            }
+            Debug.Log(3);
+            ProcessRendering();
         }
-        foreach (Vector2Int point in places)
+        if ((viewerPositionOld - viewerPosition).sqrMagnitude > sqrviewerMoveThresholdForUpdaate)
         {
-            maze.matrix[point.x, point.y].RenderMesh(true);
+            Debug.Log(4);
+            viewerPositionOld = viewerPosition;
         }
     }
-    // Update is called once per frame
+
+    void ProcessRendering()//seperate Thread Pls
+    {
+        renderedPlaces = maze.LoadRegion(Mathf.FloorToInt(viewer.transform.position.x), Mathf.FloorToInt(viewer.transform.position.z), renderDistance);
+        Debug.Log(renderedPlaces.Count);
+        RenderMaze(renderedPlaces);
+    }
+    void RenderMaze(List<Vector3Int> places)// make this rendered based on the viewers possition
+    {
+        foreach (Vector3Int point in places)
+        {
+            maze.matrix[point.x, point.y].RenderMesh(true, textUreSettings, Parent);
+        }
+    }
     void LoadMaze()
     {
         maze.GenerateMaze(mazeSettings);
-        maze.CreateOutsideWall(mazeSettings, wallsSettings, textUreSettings.defaultmaterial);
         placesOfIntrest = maze.placesOfIntrest;
         maze.CalculatePlacesOfIntrest(mazeSettings, placesOfIntrest, textUreSettings.regionNames);
         places = maze.visitedSquares;
+        Debug.Log(places.Count);
         bossLocations = maze.bossLocations;
-        RenderMaze();
-    }
-    void DrawMazeInEditor()
-    {
-        GameObject mazeParent = GameObject.Find("MazeWalls");
-        for (int i = 0; i < mazeParent.transform.childCount; i++)
+        foreach(Vector2Int point in places)
         {
-            Destroy(mazeParent.transform.GetChild(0));
+            maze.matrix[point.x, point.y].GetMeshData(wallsSettings);   
         }
-        textUreSettings.ReloadDicts();
-        maze.GenerateMaze(smallMazeSettings);
-        maze.CreateOutsideWall(smallMazeSettings, wallsSettings, textUreSettings.defaultmaterial);
-        placesOfIntrest = maze.placesOfIntrest;
-        maze.CalculatePlacesOfIntrest(smallMazeSettings, placesOfIntrest, textUreSettings.regionNames);
-        places = maze.visitedSquares;
-        bossLocations = maze.bossLocations;
-        RenderMaze();
-        Debug.Log("mazeCreated");
+        //RenderMaze();
     }
     private void OnDrawGizmos()
     {
-        if (places.Count > 0)
+        foreach(Vector2Int point in maze.lockedSquares)
         {
-            foreach (Vector2Int point in places)
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawCube(maze.matrix[point.x, point.y].location, Vector3.one * (mazeSettings.cubeSize/2));
+        }
+        foreach(Vector3 point in maze.wallSquares)
+        {
+            Gizmos.color = Color.blue;
+            Gizmos.DrawCube(point, Vector3.one * (mazeSettings.cubeSize / 2));
+        }
+        for (int x = 0; x < maze.matrix.GetLength(0); x++)
+        {
+            for (int y = 0; y < maze.matrix.GetLength(1); y++)
             {
-                Gizmos.color = Color.gray;
-                for (int i = 0; i < 4; i++)
-                {
-                    if (maze.matrix[point.x, point.y].sides[i] == true)
-                    {
-                        Gizmos.DrawLine(maze.matrix[point.x, point.y].corners[i], maze.matrix[point.x, point.y].corners[(i + 1) % 4]);
-                    }
-                }
-                if (maze.matrix[point.x, point.y].region == textUreSettings.regionNames[0])
-                {
-                    Gizmos.color = Color.blue;
-                }
-                else if (maze.matrix[point.x, point.y].region == textUreSettings.regionNames[1])
-                {
-                    Gizmos.color = Color.green;
-                }
-                else if (maze.matrix[point.x, point.y].region == textUreSettings.regionNames[2])
+                if(x == 0 || y == 0 || x == maze.matrix.GetLength(0)-1 || y == maze.matrix.GetLength(1) - 1)
                 {
                     Gizmos.color = Color.red;
+                    Gizmos.DrawCube(maze.matrix[x, y].location, Vector3.one * mazeSettings.cubeSize / 2);
                 }
-                else
-                {
-                    continue;
-                }
-                Debug.Log(maze.matrix[point.x, point.y].regionValue);
-                Gizmos.DrawSphere(maze.matrix[point.x, point.y].location, (mazeSettings.cubeSize / (2 * (maze.matrix[point.x,point.y].regionValue + 1))));
-                
-            }
-
-        }
-        if (placesOfIntrest.Count > 0 && textUreSettings.regions.Length > 0)
-        {
-            try
-            {
-                Gizmos.color = Color.white;
-                foreach (Vector2Int point in placesOfIntrest)
-                {
-                    Gizmos.DrawSphere(maze.matrix[point.x, point.y].location, mazeSettings.cubeSize / (2 * 4));
-                }
-                Gizmos.color = Color.black;
-                foreach (Vector2Int point in bossLocations)
-                {
-                    Gizmos.DrawSphere(maze.matrix[point.x, point.y].location, mazeSettings.cubeSize / 2);
-                }
-            }
-            catch
-            {
-                Debug.Log("Some Gismos Were not Drawn");
             }
         }
     }
