@@ -210,7 +210,6 @@ public class MeshData
         this.extends = extends;
         height = wallSettings.wallHeight;
         width = wallSettings.wallWidth;
-        Debug.Log(width);
         this.region = region;
 
         newCorners[0] = corners[0];
@@ -255,6 +254,11 @@ public class MeshData
         }
         triangles = new int[count * 6];
     }
+
+    void calculateNormals()
+    {
+
+    }
     public void CreateMesh(GameObject parent)
     {
         //string str = "triangles...";
@@ -269,7 +273,6 @@ public class MeshData
         //    str += vertices[i].ToString() + ",";
         //}
         //Debug.Log(str);
-        Debug.Log("createMesh");
         if (triangles.Length > 0)
         {
             squareObject = new GameObject("Mesh", typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider));
@@ -286,7 +289,6 @@ public class MeshData
     }
     public bool HasMesh()
     {
-        Debug.Log("hasMesh: " + squareObject != null);
         return (squareObject != null);
     }
     public void RenderMesh(bool b)
@@ -296,6 +298,7 @@ public class MeshData
     }
     public void LoadTextures(TextureSettings textureSettings)
     {
+        Debug.Log(region);
         if (textureSettings.regionNames.Contains(region))
         {
             try

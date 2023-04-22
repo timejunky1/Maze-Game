@@ -16,7 +16,7 @@ public class SquareData
     public bool[] extends;
     public Vector3[] corners;
 
-    bool hasMesh;
+    public bool hasMesh;
     bool hasChanged;
     public bool isRendered;
     public bool isLocked;
@@ -61,14 +61,13 @@ public class SquareData
     }
     public void GetMeshData(MazeWallsSettings wallSettings)
     {
-        Debug.Log("get Mesh data");
         meshData.CreateMeshData(sides, extends, corners, region, wallSettings);
         hasChanged = true;
     }
 
     public void RenderMesh(TextureSettings textureSettings, GameObject parent)
     {
-        if(isRendered)
+        if(isRendered && !hasChanged)
         {
             meshData.LoadTextures(textureSettings);
             return;

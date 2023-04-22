@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Mazegeneration
 {
-    public SquareData[,] matrix; 
+    public static SquareData[,] matrix; 
     public List<Vector2Int> visitedSquares = new List<Vector2Int>();
     public List<Vector2Int> placesOfIntrest = new List<Vector2Int>();
     public Vector3Int[] bossLocations;
@@ -13,10 +13,11 @@ public class Mazegeneration
     public List<Vector2Int> baseSquares;
     public List<Vector3> wallSquares = new List<Vector3>();
     MazeSettings maze;
+    MazeWallsSettings walls;
     bool isFirstMaze = true;
     int regionLoadIndex;
 
-    public Mazegeneration(MazeSettings _maze)
+    public Mazegeneration(MazeSettings _maze, MazeWallsSettings walls)
     {
         lockedSquares = new Stack<Vector2Int>();
         baseSquares = new List<Vector2Int>();
@@ -24,6 +25,7 @@ public class Mazegeneration
         isFirstMaze = true;
         maze = _maze;
         matrix = new SquareData[maze.mazeSize, maze.mazeSize];
+        this.walls = walls;
     }
     public void LoadMaze() {
         for (int x = 0; x < matrix.GetLength(0); x++)
@@ -49,7 +51,6 @@ public class Mazegeneration
         visitedSquares.Clear();
         int xpos = Mathf.CeilToInt(maze.mazeSize / 2);
         int ypos = Mathf.CeilToInt(maze.mazeSize / 2);
-        Debug.Log("Maze centre: " + xpos + ", " + ypos);
         if (isFirstMaze)
         {
             if (maze.baseSize > 0)
@@ -121,6 +122,10 @@ public class Mazegeneration
         foreach (Vector2Int pos in visitedSquares)
         {
             matrix[pos.x,pos.y].extends = CalcualateExtends(matrix[pos.x, pos.y].sides, pos.x,pos.y);
+        }
+        foreach (Vector2Int pos in visitedSquares)
+        {
+            matrix[pos.x, pos.y].GetMeshData(walls);
         }
     }
     public void SetLockedSquares()

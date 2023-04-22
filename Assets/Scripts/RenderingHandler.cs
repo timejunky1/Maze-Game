@@ -9,10 +9,10 @@ using UnityEngine;
 public class RenderingHandler : MonoBehaviour
 {
     static RenderingHandler instance;
-    static Queue<SquareData> squareRenderQueue;
-    static Queue<SquareData> squaresRenderedQueue;
-    static List<SquareData> currentRender;
-    TextureSettings settings;
+    static Queue<Vector3Int> squareRenderQueue = new Queue<Vector3Int>();
+    static Queue<Vector3Int> squaresRenderedQueue = new Queue<Vector3Int>();
+    static List<Vector3Int> currentRender;
+    public TextureSettings settings;
     public GameObject parent;
     public bool useQueue = true;
     int renderThreadCount = 0;
@@ -21,51 +21,57 @@ public class RenderingHandler : MonoBehaviour
 
     private void Awake()
     {
-        squareRenderQueue = new Queue<SquareData>();
+        squareRenderQueue = new Queue<Vector3Int>();
         instance = this;
-        settings = new TextureSettings();
     }
 
     private void Update()
     {
+        Debug.Log(renderThreadCount);
         if(squareRenderQueue.Count > 0) {
             ThreadStart render = delegate { RenderSquares(); };
             renderThreadCount++;
             render.Invoke();
         }
+        Debug.Log("current render count"+currentRender.Count);
+        Debug.Log("to be rendered count"+squareRenderQueue.Count);
+        Debug.Log("all current rendered"+squaresRenderedQueue.Count);
     }
 
-    void RenderCubes(Queue<SquareData> renderSquares)
+    void RenderCubes(Queue<Vector3Int> renderSquares)
     {
         lock (squareRenderQueue)
         {
             int count = squareRenderQueue.Count;
             for (int i = 0; i < count; i++)
             {
-                renderSquares.Dequeue().RenderMesh(settings, parent);
+                Vector3Int point = renderSquares.Dequeue();
+                Mazegeneration.matrix[point.x, point.y].RenderMesh(settings, parent);
             }
         }
     }
 
-    static void Render(List<SquareData> renderSquares)
+    public static void Render(List<Vector3Int> renderSquares)
     {
-        foreach (SquareData square in renderSquares)
+        instance.newSquares = true;
+        foreach (Vector3Int point in renderSquares)
         {
-            if (!square.isRendered)
+            if (!Mazegeneration.matrix[point.x, point.y].isRendered)
             {
-                squaresRenderedQueue.Enqueue(square);
-                squareRenderQueue.Enqueue(square);
+                squaresRenderedQueue.Enqueue(point);
+                squareRenderQueue.Enqueue(point);
             }
         }
         currentRender = renderSquares;
     }
 
-    static void RenderSquares()
+    void RenderSquares()
     {
-        if(instance.renderThreadCount >= instance.renderThreadLimit){
-            return;
-        }
-        if (instance.useQueue)
+        //if(renderThreadCount >= renderThreadLimit){
+        //    Debug.Log("Thread Limit Reached");
+        //    return;
+        //}
+        if (useQueue)
         {
             instance.RenderCubes(squareRenderQueue);
         }
@@ -76,34 +82,36 @@ public class RenderingHandler : MonoBehaviour
                 int count = squareRenderQueue.Count;
                 for( int i = 0; i < count; i++ )
                 {
-                    if (instance.renderThreadCount >= instance.renderThreadLimit)
-                    {
-                        return;
-                    }
-                    ThreadStart render = delegate { squareRenderQueue.Dequeue().RenderMesh(instance.settings, instance.parent); };
-                    instance.renderThreadCount ++;
+                    //if (renderThreadCount >= renderThreadLimit)
+                    //{
+                    //    return;
+                    //}
+                    Vector3Int point = squareRenderQueue.Dequeue();
+                    ThreadStart render = delegate { Mazegeneration.matrix[point.x, point.y].RenderMesh(settings, parent); };
                     render.Invoke();
                 }
             }
         }
-        if (instance.renderThreadCount < instance.renderThreadLimit && instance.newSquares == true && squareRenderQueue.Count == 0)
+        if (newSquares == true && squareRenderQueue.Count == 0)
         {
+            Debug.Log("derender");
             lock (squaresRenderedQueue)
             {
-                int count = squareRenderQueue.Count;
+                int count = squaresRenderedQueue.Count;
                 for (int i = 0; i < count; i++)
                 {
-                    SquareData square = squaresRenderedQueue.Dequeue();
-                    if (!currentRender.Contains(square))
+                    Vector3Int point = squaresRenderedQueue.Dequeue();
+                    if (!currentRender.Contains(point))
                     {
-                        square.HideMesh();
+                        Debug.Log("HideMesh");
+                        Mazegeneration.matrix[point.x, point.y].HideMesh();
                     }
                 }
-                foreach(SquareData square in currentRender)
+                foreach(Vector3Int point in currentRender)
                 {
-                    squaresRenderedQueue.Enqueue(square);
+                    squaresRenderedQueue.Enqueue(point);
                 }
-                instance.newSquares= false;
+                newSquares= false;
             }
         }
     }
@@ -114,6 +122,7 @@ public class RenderingHandler : MonoBehaviour
         {
             Thread.CurrentThread.Abort();
             instance.renderThreadCount--;
+            Debug.Log("Thread Ended");
         }
     }
 }
