@@ -14,13 +14,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   autoUpdate: 0
   newMaze: 1
-  createEntrance: 1
+  createOuterWall: 0
+  createEntrance: 0
   mazeSize: 30
-  cubeSize: 10
+  cubeSize: 20
   backTrackDst: 0
-  maxPathLength: 50
-  bossDst: 8
-  amountOfBosses: 10
+  maxPathLength: 30
+  bossDst: 3
+  amountOfBosses: 3
   baseSize: 3
   regionSpread: 10
   bossChance: 5
+  showVertacies: 8

@@ -1,10 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
-[CreateAssetMenu()]
-public class TextUreSettings : UpdatableData
+[CreateAssetMenu]
+public class TextureSettings : UpdatableData
 {
     public Material defaultmaterial;
     [SerializeField]
@@ -13,14 +12,14 @@ public class TextUreSettings : UpdatableData
     public Dictionary<string, Material> materials;
     public Dictionary<string, Color> colors;
 
-    private void OnValidate()
+    private void Awake()
     {
         ReloadDicts();
     }
 
     public void ReloadDicts()
     {
-        regionNames= new List<string>();
+        regionNames = new List<string>();
         materials = new Dictionary<string, Material>();
         colors = new Dictionary<string, Color>();
         for (int i = 0; i < regions.Length; i++)

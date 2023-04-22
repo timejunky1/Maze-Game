@@ -3,26 +3,19 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
-using static TextUreSettings;
 
-public class GenerateWalls
-{
-    
-}
 public class MeshData
 {
-    GameObject parent;
-    Vector3[] vertices;
+    public Vector3[] vertices;
     Vector2[] uvs;
     int[] triangles;
     string region;
 
-    Vector3[] oldCorners;
-    Vector3[] newCorners;
+    public Vector3[] newCorners;
     int[] cornerIndexes;
-    int[] oldCornerIndexes;
 
     bool[] sides;
     bool[] extends;
@@ -34,12 +27,10 @@ public class MeshData
     Material mat;
     Mesh mesh;
     GameObject squareObject;
-    bool hasMesh;
     public MeshData()
     {
         newCorners = new Vector3[4];
         cornerIndexes = new int[4];
-        oldCornerIndexes= new int[4];
         triangleIndex = 0;
         vertIndex= 0;
     }
@@ -219,9 +210,8 @@ public class MeshData
         this.extends = extends;
         height = wallSettings.wallHeight;
         width = wallSettings.wallWidth;
+        Debug.Log(width);
         this.region = region;
-
-        oldCorners= corners;
 
         newCorners[0] = corners[0];
         newCorners[1] = corners[1];
@@ -279,7 +269,8 @@ public class MeshData
         //    str += vertices[i].ToString() + ",";
         //}
         //Debug.Log(str);
-        if(triangles.Length > 0)
+        Debug.Log("createMesh");
+        if (triangles.Length > 0)
         {
             squareObject = new GameObject("Mesh", typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider));
             squareObject.transform.parent = parent.transform;
@@ -295,30 +286,38 @@ public class MeshData
     }
     public bool HasMesh()
     {
+        Debug.Log("hasMesh: " + squareObject != null);
         return (squareObject != null);
     }
     public void RenderMesh(bool b)
     {
-        if(hasMesh)
-        {
-            squareObject.SetActive(b);
-        }
+        Debug.Log("renderMesh");
+        squareObject.SetActive(b);
     }
-    public void LoadTextures(TextUreSettings textureSettings)
+    public void LoadTextures(TextureSettings textureSettings)
     {
-        try
+        if (textureSettings.regionNames.Contains(region))
         {
-            mat = textureSettings.materials[region];
+            try
+            {
+                mat = textureSettings.materials[region];
+            }
+            catch (Exception ex)
+            {
+                Debug.Log("Texture Problem: " + ex.Message);
+                mat = textureSettings.defaultmaterial;
+            }
         }
-        catch (Exception ex)
+        else
         {
-            Debug.LogException(ex);
             mat = textureSettings.defaultmaterial;
         }
+        
         squareObject.GetComponent<MeshRenderer>().material = mat;
     }
     public void UpdateMesh()
     {
+        Debug.Log("Update Mesh");
         mesh.Clear();
         mesh.vertices = vertices;
         mesh.uv = uvs;
@@ -326,6 +325,7 @@ public class MeshData
         mesh.RecalculateNormals();
         squareObject.GetComponent<MeshFilter>().mesh = mesh;
         squareObject.GetComponent<MeshCollider>().sharedMesh = mesh;
+        squareObject.GetComponent<MeshRenderer>().material = mat;
 
     }
 }

@@ -13,13 +13,16 @@ MonoBehaviour:
   m_Name: New Maze Settings
   m_EditorClassIdentifier: 
   autoUpdate: 0
-  createEntrance: 1
-  mazeSize: 50
+  newMaze: 0
+  createOuterWall: 0
+  createEntrance: 0
+  mazeSize: 30
   cubeSize: 10
   backTrackDst: 0
-  maxPathLength: 100
+  maxPathLength: 30
   bossDst: 5
-  amountOfBosses: 30
-  baseSize: 3
+  amountOfBosses: 10
+  baseSize: 5
   regionSpread: 5
   bossChance: 8
+  showVertacies: 10

@@ -18,14 +18,17 @@ public class SquareData
 
     bool hasMesh;
     bool hasChanged;
-    public bool isLocked = false;
-    MeshData meshData;
+    public bool isRendered;
+    public bool isLocked;
+    public MeshData meshData;
     public Color color;
 
     public SquareData(int cubeSize, Vector3 location)
     {
+        isLocked = false;
+        isRendered = false;
         hasMesh = false;
-        hasChanged = false;
+        hasChanged = true;
         regions = new Dictionary<String, int>();
         meshData = new MeshData();
         corners = new Vector3[4];//starting from topLeft
@@ -43,6 +46,10 @@ public class SquareData
         {
             sides[i] = false;
         }
+        for (int i = 0; i < extends.Length; i++)
+        {
+            extends[i] = false;
+        }
     }
     void CalculateCorners(int cubeSize)
     {
@@ -54,34 +61,48 @@ public class SquareData
     }
     public void GetMeshData(MazeWallsSettings wallSettings)
     {
+        Debug.Log("get Mesh data");
         meshData.CreateMeshData(sides, extends, corners, region, wallSettings);
         hasChanged = true;
     }
 
-    public void RenderMesh(bool b, TextUreSettings textureSettings, GameObject parent)
+    public void RenderMesh(TextureSettings textureSettings, GameObject parent)
     {
+        if(isRendered)
+        {
+            meshData.LoadTextures(textureSettings);
+            return;
+        }
         hasMesh = meshData.HasMesh();
-        if(b && !hasMesh)
+        if (!hasMesh)
         {
             meshData.CreateMesh(parent);
-            meshData.RenderMesh(b);
             meshData.LoadTextures(textureSettings);
+            meshData.RenderMesh(true);
             hasChanged = false;
         }
-        else if (hasMesh && b && hasChanged)
+        else if (hasMesh && hasChanged)
         {
             meshData.UpdateMesh();
-            meshData.RenderMesh(b);
             meshData.LoadTextures(textureSettings);
+            meshData.RenderMesh(true);
             hasChanged = false;
         }
-        else if(hasMesh)
+        else if (hasMesh)
         {
-            meshData.RenderMesh(b);
+            meshData.LoadTextures(textureSettings);
+            meshData.RenderMesh(true);
         }
+        isRendered= true;
+        //EndRender();
+    }
+    public void HideMesh()
+    {
+        isRendered=false;
+        meshData.RenderMesh(false);
     }
 
-    public void ReloadTextures(TextUreSettings textureSettings)
+    public void ReloadTextures(TextureSettings textureSettings)
     {
         meshData.LoadTextures(textureSettings);
     }

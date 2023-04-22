@@ -4,6 +4,7 @@ using UnityEngine;
 [CreateAssetMenu()]
 public class EditorCubeSettings: UpdatableData
 {
+    public int cubeSize;
     [Range(0,3)]
     public int region;
     public bool canSpawn;
