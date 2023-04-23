@@ -12,11 +12,6 @@ public class TextureSettings : UpdatableData
     public Dictionary<string, Material> materials;
     public Dictionary<string, Color> colors;
 
-    private void Awake()
-    {
-        ReloadDicts();
-    }
-
     public void ReloadDicts()
     {
         regionNames = new List<string>();

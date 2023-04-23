@@ -361,6 +361,7 @@ public class Mazegeneration
 
     public List<Vector3Int> LoadRegion(int xPos, int yPos , int regionSpread, bool loadOver)
     {
+        int direction = 0;
         int offSet = 0;
         if(loadOver)
         {
@@ -375,11 +376,21 @@ public class Mazegeneration
         regionSquares.Add(new Vector3Int(xPos, yPos, 0));
         while (mazeComplete == false)
         {
+            Vector2Int option = new Vector2Int(xPos, yPos);
+            bool hasOptions = false;
             int regionValue = visited.Count + 1 + offSet;
             matrix[xPos, yPos].regionIndex = regionLoadIndex;
-            
-            Vector2Int option = RegionOptions(xPos, yPos, regionLoadIndex, regionValue);
-            bool hasOptions = (option.x!=xPos || option.y!=yPos);
+            for (int i = 0; i < 3; i++)
+            {
+                direction = (direction + 2) % 6;
+                option = RegionOptions(xPos, yPos, regionLoadIndex, regionValue, direction);
+                hasOptions = (option.x != xPos || option.y != yPos);
+                if(hasOptions)
+                {
+                    break;
+                }
+            }
+
             Vector3Int oldSquare = new Vector3Int(xPos, yPos, regionValue);
             if (visited.Count == 0 && hasOptions == false)
             {
@@ -410,15 +421,15 @@ public class Mazegeneration
                 yPos = oldVector.y;
                 end = false;
             }
-            else { mazeComplete = true; }
+            //else { mazeComplete = true; }
         }
         return regionSquares;
     }
 
-    Vector2Int RegionOptions(int xPos, int yPos, int regionIndex, int regionValue)
+    Vector2Int RegionOptions(int xPos, int yPos, int regionIndex, int regionValue, int direction)
     {
         Vector2Int result = new Vector2Int(xPos, yPos);
-        if(xPos != matrix.GetLength(0) - 1)
+        if(xPos != matrix.GetLength(0) - 1 && (direction == 0 ||direction == 1 || direction == 2 || direction == 4))
         {
             if (matrix[xPos, yPos].sides[1] == false && matrix[xPos + 1, yPos].sides[3] == false && matrix[xPos + 1, yPos].regionIndex != regionIndex && matrix[xPos + 1, yPos].regionValue <= regionValue)//right
             {
@@ -426,7 +437,7 @@ public class Mazegeneration
                 return result;
             }
         }
-        if(yPos != 0)
+        if(yPos != 0 && (direction == 1 || direction == 2 || direction == 3 || direction == 4))
         {
             if (matrix[xPos, yPos].sides[2] == false && matrix[xPos, yPos - 1].sides[0] == false && matrix[xPos, yPos - 1].regionIndex != regionIndex && matrix[xPos, yPos - 1].regionValue <= regionValue)//down
             {
@@ -434,7 +445,7 @@ public class Mazegeneration
                 return result;
             }
         }
-        if(xPos != 0)
+        if(xPos != 0 && (direction == 2 || direction == 3 || direction == 0 || direction == 4))
         {
             if (matrix[xPos, yPos].sides[3] == false && matrix[xPos - 1, yPos].sides[1] == false && matrix[xPos - 1, yPos].regionIndex != regionIndex && matrix[xPos - 1, yPos].regionValue <= regionValue)//left
             {
@@ -442,7 +453,7 @@ public class Mazegeneration
                 return result;
             }
         }
-        if(yPos != matrix.GetLength(1) - 1)
+        if(yPos != matrix.GetLength(1) - 1 && (direction == 3 || direction == 0 || direction == 1 || direction == 4))
         {
             if (matrix[xPos, yPos].sides[0] == false && matrix[xPos, yPos + 1].sides[2] == false && matrix[xPos,yPos + 1].regionIndex != regionIndex && matrix[xPos, yPos + 1].regionValue <= regionValue)//up
             {

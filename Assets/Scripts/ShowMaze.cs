@@ -39,7 +39,6 @@ public class ShowMaze: MonoBehaviour
         LoadMaze();
         viewerPosition = new Vector2(viewer.position.x, viewer.position.z);
         ProcessRendering(new Vector2Int(Mathf.FloorToInt((viewerPosition.x / mazeSettings.cubeSize) + (mazeSettings.mazeSize / 2)), Mathf.FloorToInt((viewerPosition.y / mazeSettings.cubeSize) + (mazeSettings.mazeSize / 2))));
-        Debug.Log(viewerPosition);
         viewerPositionOld = viewerPosition;
     }
 
@@ -48,7 +47,7 @@ public class ShowMaze: MonoBehaviour
         viewerPosition = new Vector2(viewer.position.x, viewer.position.z);
         if (viewerPosition != viewerPositionOld)
         {
-            if ((viewerPositionOld - viewerPosition).sqrMagnitude >= sqrviewerMoveThresholdForUpdate)
+            if ((viewerPositionOld - viewerPosition).sqrMagnitude >= sqrviewerMoveThresholdForUpdate*mazeSettings.cubeSize)
             {
                 ProcessRendering(new Vector2Int(Mathf.FloorToInt((viewerPosition.x / mazeSettings.cubeSize)+(mazeSettings.mazeSize/2)), Mathf.FloorToInt((viewerPosition.y / mazeSettings.cubeSize) + (mazeSettings.mazeSize / 2))));
                 viewerPositionOld = viewerPosition;
@@ -56,9 +55,10 @@ public class ShowMaze: MonoBehaviour
         }
     }
 
-    void ProcessRendering(Vector2Int pos)//seperate Thread Pls
+    void ProcessRendering(Vector2Int pos)
     {
         renderedPlaces = maze.LoadRegion(pos.x, pos.y, renderDistance, true);
+        Debug.Log(renderedPlaces.Count);
         RenderingHandler.Render(renderedPlaces);
     }
     void LoadMaze()

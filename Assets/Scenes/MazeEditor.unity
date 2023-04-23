@@ -14052,6 +14052,7 @@ GameObject:
   - component: {fileID: 270733030}
   - component: {fileID: 270733032}
   - component: {fileID: 270733031}
+  - component: {fileID: 270733033}
   m_Layer: 0
   m_Name: Maze
   m_TagString: Untagged
@@ -14107,10 +14108,24 @@ MonoBehaviour:
   wallsSettings: {fileID: 11400000, guid: 68a6303a60e0613469514b3a7dd0d6ad, type: 2}
   mazeSettings: {fileID: 11400000, guid: 1ca03a040f1d2044fa7d0ae1d4498e06, type: 2}
   textureSettings: {fileID: 11400000, guid: 6243cae87eb252c469dceedfbc5a3381, type: 2}
-  Parent: {fileID: 270733029}
   viewer: {fileID: 738646358}
   renderDistance: 5
-  sqrviewerMoveThresholdForUpdaate: 0
+  sqrviewerMoveThresholdForUpdate: 0
+--- !u!114 &270733033
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 270733029}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b95e4a1a9340a274486383a15599382d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  settings: {fileID: 11400000, guid: 6243cae87eb252c469dceedfbc5a3381, type: 2}
+  parent: {fileID: 270733029}
+  useQueue: 1
 --- !u!1 &271853112
 GameObject:
   m_ObjectHideFlags: 0

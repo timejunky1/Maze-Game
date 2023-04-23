@@ -293,10 +293,9 @@ public class MeshData
     }
     public void RenderMesh(bool b)
     {
-        Debug.Log("renderMesh");
         squareObject.SetActive(b);
     }
-    public void LoadTextures(TextureSettings textureSettings)
+    public void LoadTextures(TextureSettings textureSettings)//somehow this loads with a seperate texturesettings instance throughout the rendering proces
     {
         Debug.Log(region);
         if (textureSettings.regionNames.Contains(region))
