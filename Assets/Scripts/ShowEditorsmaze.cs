@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using UnityEngine;
@@ -12,6 +12,7 @@ public class ShowEditorsmaze : MonoBehaviour
     public MazeWallsSettings wallsSettings;
     public MazeSettings mazeSettings;
     public TextureSettings textureSettings;
+    public TextureSettings.Region[] regions;
     public GameObject CubeParent;
     public GameObject MazeParent;
     bool cube = false;
@@ -23,9 +24,13 @@ public class ShowEditorsmaze : MonoBehaviour
     List<Vector2Int> places;
     Mazegeneration maze;
     SquareData square;
-
     private void Awake()
     {
+        textureSettings = new TextureSettings();
+        if(textureSettings.regions == null)
+        {
+            textureSettings.regions = regions;
+        }
         places = new List<Vector2Int>();
         update= false;
         textureSettings.ReloadDicts();
@@ -52,7 +57,7 @@ public class ShowEditorsmaze : MonoBehaviour
             maze.SetLockedSquares();
             LoadMaze();
             places = maze.visitedSquares;
-            maze.CalculatePlacesOfIntrest(maze.placesOfIntrest, textureSettings.regionNames);
+            maze.CalculatePlacesOfIntrest(maze.placesOfIntrest, textureSettings);
             bossLocations = maze.bossLocations;
         }
         if(maze!= null)
@@ -69,7 +74,7 @@ public class ShowEditorsmaze : MonoBehaviour
         {
             DestroyImmediate(CubeParent.transform.GetChild(0).gameObject);
         }
-        RenderCube();
+        RenderCube(textureSettings);
         MazeParent.SetActive(false);
     }
     bool HasMesh(GameObject parent)
@@ -149,7 +154,7 @@ public class ShowEditorsmaze : MonoBehaviour
         }
     }
 
-    void RenderCube()//destroy the initial cube
+    void RenderCube(TextureSettings textureSettings)//destroy the initial cube
     {
         Debug.Log("RenderCube");
         Debug.Log(textureSettings.regionNames[cubeSettings.region]);

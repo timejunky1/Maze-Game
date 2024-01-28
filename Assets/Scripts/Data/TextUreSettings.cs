@@ -2,11 +2,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-[CreateAssetMenu]
+[CreateAssetMenu()]
 public class TextureSettings : UpdatableData
 {
     public Material defaultmaterial;
-    [SerializeField]
     public Region[] regions;
     public List<string> regionNames;
     public Dictionary<string, Material> materials;
@@ -14,6 +13,7 @@ public class TextureSettings : UpdatableData
 
     public void ReloadDicts()
     {
+        Debug.Log("ReloadDicts");
         regionNames = new List<string>();
         materials = new Dictionary<string, Material>();
         colors = new Dictionary<string, Color>();

@@ -7,28 +7,28 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: af4a90a2d547c11418fbf09673addfab, type: 3}
+  m_Script: {fileID: 11500000, guid: 57d451369a4d8f943bb43e882d7c1886, type: 3}
   m_Name: New Texture Settings
   m_EditorClassIdentifier: 
-  autoUpdate: 0
+  autoUpdate: 1
   defaultmaterial: {fileID: 2100000, guid: 11c726ddd2dd7f74cbb39bd3d243fd71, type: 2}
   regions:
-  - regionName: Ice
+  - regionName: ice1
     material: {fileID: 2100000, guid: 73aaa20544c2d2e46b54ca9daef0b20e, type: 2}
-    color: {r: 0.08290317, g: 0.6509434, b: 0.548, a: 0}
-  - regionName: Fire
-    material: {fileID: 2100000, guid: 9b33d98fd84cc764c9ad7bf4d8def645, type: 2}
-    color: {r: 0.6509804, g: 0.087920845, b: 0.08235295, a: 0}
-  - regionName: Desert
-    material: {fileID: 2100000, guid: 47de45b9995dde441a7c7000eff8dcde, type: 2}
-    color: {r: 0.6509804, g: 0.43839523, b: 0.08235295, a: 0}
-  - regionName: Jungle
-    material: {fileID: 2100000, guid: 4f7cc834a2e303143a5990acc2483762, type: 2}
-    color: {r: 0.07863118, g: 0.2924528, b: 0.11273555, a: 0}
+    color: {r: 0.04160734, g: 0.8018868, b: 0.7177564, a: 0}
+  - regionName: ice2
+    material: {fileID: 2100000, guid: 73aaa20544c2d2e46b54ca9daef0b20e, type: 2}
+    color: {r: 0.04160734, g: 0.8018868, b: 0.7177564, a: 0}
+  - regionName: ice3
+    material: {fileID: 2100000, guid: 73aaa20544c2d2e46b54ca9daef0b20e, type: 2}
+    color: {r: 0.04160734, g: 0.8018868, b: 0.7177564, a: 0}
+  - regionName: ice4
+    material: {fileID: 2100000, guid: 73aaa20544c2d2e46b54ca9daef0b20e, type: 2}
+    color: {r: 0.04160734, g: 0.8018868, b: 0.7177564, a: 0}
   regionNames:
-  - Ice
-  - Fire
-  - Desert
-  - Jungle
+  - ice1
+  - ice2
+  - ice3
+  - ice4

@@ -26,3 +26,5 @@ MonoBehaviour:
   regionSpread: 10
   bossChance: 5
   showVertacies: 8
+  walls:
+    region: 1

@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-[CreateAssetMenu]
+[CreateAssetMenu()]
 public class MazeWallsSettings : UpdatableData
 {
     public int wallHeight = 10;

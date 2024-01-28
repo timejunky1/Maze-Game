@@ -9,10 +9,11 @@ using UnityEngine;
 public class RenderingHandler : MonoBehaviour
 {
     static RenderingHandler instance;
-    static Queue<Vector3Int> squareRenderQueue = new Queue<Vector3Int>();
+    static Queue<Vector3Int> squareRenderQueue;
     static Queue<Vector2Int> squaresRendered = new Queue<Vector2Int>();
     static List<Vector2Int> currentRender = new List<Vector2Int>();
-    public TextureSettings settings;
+    public TextureSettings textureSettings;
+    public TextureSettings.Region[] regions;
     public GameObject parent;
     public bool useQueue = true;
     public bool setRerender = true;
@@ -23,6 +24,10 @@ public class RenderingHandler : MonoBehaviour
 
     private void Awake()
     {
+        if (textureSettings.regions == null)
+        {
+            textureSettings.regions = regions;
+        }
         squareRenderQueue = new Queue<Vector3Int>();
         instance = this;
     }
@@ -45,7 +50,7 @@ public class RenderingHandler : MonoBehaviour
             for (int i = 0; i < count; i++)
             {
                 Vector3Int point = renderSquares.Dequeue();
-                Mazegeneration.matrix[point.x, point.y].RenderMesh(settings, parent);
+                Mazegeneration.matrix[point.x, point.y].RenderMesh(textureSettings, parent);
             }
         }
     }
@@ -56,7 +61,10 @@ public class RenderingHandler : MonoBehaviour
         currentRender.Clear();
         foreach (Vector3Int point in renderSquares)
         {
-            squareRenderQueue.Enqueue(point);
+            lock (squareRenderQueue)
+            {
+                squareRenderQueue.Enqueue(point);
+            }
             currentRender.Add(new Vector2Int(point.x, point.y));
         }
     }
@@ -83,7 +91,7 @@ public class RenderingHandler : MonoBehaviour
                     //    return;
                     //}
                     Vector3Int point = squareRenderQueue.Dequeue();
-                    ThreadStart render = delegate { Mazegeneration.matrix[point.x, point.y].RenderMesh(settings, parent); };
+                    ThreadStart render = delegate { Mazegeneration.matrix[point.x, point.y].RenderMesh(textureSettings, parent); };
                     render.Invoke();
                 }
             }

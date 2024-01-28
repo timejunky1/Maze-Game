@@ -12,6 +12,7 @@ public class ShowMaze: MonoBehaviour
     public MazeWallsSettings wallsSettings;
     public MazeSettings mazeSettings;
     public TextureSettings textureSettings;
+    public TextureSettings.Region[] regions;
     public Transform viewer;
     public int renderDistance;
     public int sqrviewerMoveThresholdForUpdate;
@@ -26,6 +27,11 @@ public class ShowMaze: MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        textureSettings = new TextureSettings();
+        if(textureSettings.regions == null)
+        {
+            textureSettings.regions = regions;
+        }
         try
         {
             GameObject.Find("EditorsMaze").SetActive(false);
@@ -65,7 +71,7 @@ public class ShowMaze: MonoBehaviour
     {
         maze.GenerateMaze();
         placesOfIntrest = maze.placesOfIntrest;
-        maze.CalculatePlacesOfIntrest(placesOfIntrest, textureSettings.regionNames);
+        maze.CalculatePlacesOfIntrest(placesOfIntrest, textureSettings);
         places = maze.visitedSquares;
         Debug.Log(places.Count);
         int oldPointY = -1;
@@ -82,84 +88,84 @@ public class ShowMaze: MonoBehaviour
         }
         bossLocations = maze.bossLocations;
     }
-    private void OnDrawGizmos()
-    {
-        if(maze != null)
-        {
-            int count = 0;
-            foreach (Vector2Int point in maze.lockedSquares)
-            {
-                Gizmos.color = Color.yellow;
-                Gizmos.DrawCube(Mazegeneration.matrix[point.x, point.y].location, Vector3.one * (mazeSettings.cubeSize / 2));
-            }
-            foreach (Vector3 point in maze.wallSquares)
-            {
-                Gizmos.color = Color.blue;
-                Gizmos.DrawCube(point, Vector3.one * (mazeSettings.cubeSize / 2));
-            }
-            for (int x = 0; x < Mazegeneration.matrix.GetLength(0); x++)
-            {
-                for (int y = 0; y < Mazegeneration.matrix.GetLength(1); y++)
-                {
-                    if (x == 0 || y == 0 || x == Mazegeneration.matrix.GetLength(0) - 1 || y == Mazegeneration.matrix.GetLength(1) - 1)
-                    {
-                        Gizmos.color = Color.red;
-                        Gizmos.DrawCube(Mazegeneration.matrix[x, y].location, Vector3.one * mazeSettings.cubeSize / 2);
-                    }
-                }
-            }
-            Gizmos.color = Color.white;
-            foreach (Vector2Int point in renderedPlaces)
-            {
-                Gizmos.DrawCube(Mazegeneration.matrix[point.x, point.y].location, new Vector3(mazeSettings.cubeSize / 2, mazeSettings.cubeSize / 2, mazeSettings.cubeSize / 2));
-            }
-            foreach (Vector2Int point in places)
-            {
-                Gizmos.color = Color.white;
-                count++;
-                SquareData square = Mazegeneration.matrix[point.x, point.y];
-                if (square.sides[0] == true)
-                {
-                    Gizmos.DrawLine(square.corners[0], square.corners[1]);
-                }
-                if (square.sides[1] == true)
-                {
-                    Gizmos.DrawLine(square.corners[1], square.corners[2]);
-                }
-                if (square.sides[2] == true)
-                {
-                    Gizmos.DrawLine(square.corners[2], square.corners[3]);
-                }
-                if (square.sides[3] == true)
-                {
-                    Gizmos.DrawLine(square.corners[3], square.corners[0]);
-                }
-                if (square.region == "Desert")
-                {
-                    Gizmos.color = Color.yellow;
-                    Gizmos.DrawSphere(square.location, mazeSettings.cubeSize / 3);
-                }
-                if (square.region == "Jungle")
-                {
-                    Gizmos.color = Color.green;
-                    Gizmos.DrawSphere(square.location, mazeSettings.cubeSize / 3);
-                }
-                if (square.region == "Fire")
-                {
-                    Gizmos.color = Color.red;
-                    Gizmos.DrawSphere(square.location, mazeSettings.cubeSize / 3);
-                }
-                if (square.region == "Ice")
-                {
-                    Gizmos.color = Color.blue;
-                    Gizmos.DrawSphere(square.location, mazeSettings.cubeSize / 3);
-                }
-                //if (square.region == "Maze")
-                //{
-                //    Gizmos.color = Color.white;
-                //    Gizmos.DrawSphere(square.location, mazeSettings.cubeSize/3);
-                //}
-            }
-        }    
-    }
+    //private void OnDrawGizmos()
+    //{
+    //    if(maze != null)
+    //    {
+    //        int count = 0;
+    //        foreach (Vector2Int point in maze.lockedSquares)
+    //        {
+    //            Gizmos.color = Color.yellow;
+    //            Gizmos.DrawCube(Mazegeneration.matrix[point.x, point.y].location, Vector3.one * (mazeSettings.cubeSize / 2));
+    //        }
+    //        foreach (Vector3 point in maze.wallSquares)
+    //        {
+    //            Gizmos.color = Color.blue;
+    //            Gizmos.DrawCube(point, Vector3.one * (mazeSettings.cubeSize / 2));
+    //        }
+    //        for (int x = 0; x < Mazegeneration.matrix.GetLength(0); x++)
+    //        {
+    //            for (int y = 0; y < Mazegeneration.matrix.GetLength(1); y++)
+    //            {
+    //                if (x == 0 || y == 0 || x == Mazegeneration.matrix.GetLength(0) - 1 || y == Mazegeneration.matrix.GetLength(1) - 1)
+    //                {
+    //                    Gizmos.color = Color.red;
+    //                    Gizmos.DrawCube(Mazegeneration.matrix[x, y].location, Vector3.one * mazeSettings.cubeSize / 2);
+    //                }
+    //            }
+    //        }
+    //        Gizmos.color = Color.white;
+    //        foreach (Vector2Int point in renderedPlaces)
+    //        {
+    //            Gizmos.DrawCube(Mazegeneration.matrix[point.x, point.y].location, new Vector3(mazeSettings.cubeSize / 2, mazeSettings.cubeSize / 2, mazeSettings.cubeSize / 2));
+    //        }
+    //        foreach (Vector2Int point in places)
+    //        {
+    //            Gizmos.color = Color.white;
+    //            count++;
+    //            SquareData square = Mazegeneration.matrix[point.x, point.y];
+    //            if (square.sides[0] == true)
+    //            {
+    //                Gizmos.DrawLine(square.corners[0], square.corners[1]);
+    //            }
+    //            if (square.sides[1] == true)
+    //            {
+    //                Gizmos.DrawLine(square.corners[1], square.corners[2]);
+    //            }
+    //            if (square.sides[2] == true)
+    //            {
+    //                Gizmos.DrawLine(square.corners[2], square.corners[3]);
+    //            }
+    //            if (square.sides[3] == true)
+    //            {
+    //                Gizmos.DrawLine(square.corners[3], square.corners[0]);
+    //            }
+    //            if (square.region == "Desert")
+    //            {
+    //                Gizmos.color = Color.yellow;
+    //                Gizmos.DrawSphere(square.location, mazeSettings.cubeSize / 3);
+    //            }
+    //            if (square.region == "Jungle")
+    //            {
+    //                Gizmos.color = Color.green;
+    //                Gizmos.DrawSphere(square.location, mazeSettings.cubeSize / 3);
+    //            }
+    //            if (square.region == "Fire")
+    //            {
+    //                Gizmos.color = Color.red;
+    //                Gizmos.DrawSphere(square.location, mazeSettings.cubeSize / 3);
+    //            }
+    //            if (square.region == "Ice")
+    //            {
+    //                Gizmos.color = Color.blue;
+    //                Gizmos.DrawSphere(square.location, mazeSettings.cubeSize / 3);
+    //            }
+    //            //if (square.region == "Maze")
+    //            //{
+    //            //    Gizmos.color = Color.white;
+    //            //    Gizmos.DrawSphere(square.location, mazeSettings.cubeSize/3);
+    //            //}
+    //        }
+    //    }    
+    //}
 }

@@ -302,23 +302,24 @@ public class Mazegeneration
         }
     }
 
-    public void CalculatePlacesOfIntrest(List<Vector2Int> placesOfInterest, List<string> regions)
+    public void CalculatePlacesOfIntrest(List<Vector2Int> placesOfInterest, TextureSettings textureSettings)
     {
         Vector2Int centerPoint = new Vector2Int(Mathf.CeilToInt(maze.mazeSize/2), Mathf.CeilToInt(maze.mazeSize / 2));
         bossLocations = new Vector3Int[maze.amountOfBosses];
         int count = 0;
         foreach(Vector2Int point in placesOfInterest)
         {
-            if(count < maze.amountOfBosses && point.x > 0 && point.y > 0 && point.x < matrix.GetLength(0) - 1 && point.y < matrix.GetLength(1) - 1)
+            if (count < maze.amountOfBosses && point.x > 0 && point.y > 0 && point.x < matrix.GetLength(0) - 1 && point.y < matrix.GetLength(1) - 1)
             {
-                if(point.x >= centerPoint.x + maze.bossDst ||  point.x <= centerPoint.x - maze.bossDst || point.y >= centerPoint.y + maze.bossDst || point.y <= centerPoint.y - maze.bossDst && matrix[point.x, point.y].canSpawn)
+                if (point.x >= centerPoint.x + maze.bossDst || point.x <= centerPoint.x - maze.bossDst || point.y >= centerPoint.y + maze.bossDst || point.y <= centerPoint.y - maze.bossDst && matrix[point.x, point.y].canSpawn)
                 {
                     int percent = UnityEngine.Random.Range(0, 100);
-                    if(percent <= maze.bossChance)
+                    if (percent <= maze.bossChance)
                     {
-                        int rndRegion = UnityEngine.Random.Range(0, regions.Count);
+                        int rndRegion = UnityEngine.Random.Range(0, textureSettings.regionNames.Count);
+                        Debug.Log(textureSettings.regionNames.Count);
                         bossLocations[count] = new Vector3Int(point.x, point.y, rndRegion);
-                        string region = regions[rndRegion];
+                        string region = textureSettings.regionNames[rndRegion];
                         List<Vector3Int> squareRegions = LoadRegion(point.x, point.y, maze.regionSpread, false);
                         foreach (Vector3Int regVal in squareRegions)
                         {
