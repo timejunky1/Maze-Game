@@ -12,7 +12,6 @@ public class ShowEditorsmaze : MonoBehaviour
     public MazeWallsSettings wallsSettings;
     public MazeSettings mazeSettings;
     public TextureSettings textureSettings;
-    public TextureSettings.Region[] regions;
     public GameObject CubeParent;
     public GameObject MazeParent;
     bool cube = false;
@@ -26,11 +25,6 @@ public class ShowEditorsmaze : MonoBehaviour
     SquareData square;
     private void Awake()
     {
-        textureSettings = new TextureSettings();
-        if(textureSettings.regions == null)
-        {
-            textureSettings.regions = regions;
-        }
         places = new List<Vector2Int>();
         update= false;
         textureSettings.ReloadDicts();
@@ -47,7 +41,7 @@ public class ShowEditorsmaze : MonoBehaviour
         MazeParent.SetActive(true);
         if (!HasMesh(MazeParent) || newMaze)
         {
-            maze = new Mazegeneration(mazeSettings, wallsSettings);
+            maze = new Mazegeneration(mazeSettings, wallsSettings, textureSettings);
             maze.LoadMaze();
             int count = MazeParent.transform.childCount;
             for (int i = 0; i < count; i++)

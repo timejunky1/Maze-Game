@@ -13,22 +13,27 @@ MonoBehaviour:
   m_Name: New Texture Settings
   m_EditorClassIdentifier: 
   autoUpdate: 1
+  bossStatue: {fileID: 5131778937183454807, guid: 0a3ba358d81b17f4aabfe2095617fdd5, type: 3}
   defaultmaterial: {fileID: 2100000, guid: 11c726ddd2dd7f74cbb39bd3d243fd71, type: 2}
   regions:
-  - regionName: ice1
+  - regionName: Ice
     material: {fileID: 2100000, guid: 73aaa20544c2d2e46b54ca9daef0b20e, type: 2}
     color: {r: 0.04160734, g: 0.8018868, b: 0.7177564, a: 0}
-  - regionName: ice2
-    material: {fileID: 2100000, guid: 73aaa20544c2d2e46b54ca9daef0b20e, type: 2}
-    color: {r: 0.04160734, g: 0.8018868, b: 0.7177564, a: 0}
-  - regionName: ice3
-    material: {fileID: 2100000, guid: 73aaa20544c2d2e46b54ca9daef0b20e, type: 2}
-    color: {r: 0.04160734, g: 0.8018868, b: 0.7177564, a: 0}
-  - regionName: ice4
-    material: {fileID: 2100000, guid: 73aaa20544c2d2e46b54ca9daef0b20e, type: 2}
-    color: {r: 0.04160734, g: 0.8018868, b: 0.7177564, a: 0}
+  - regionName: Jungle
+    material: {fileID: 2100000, guid: 4f7cc834a2e303143a5990acc2483762, type: 2}
+    color: {r: 0.043137264, g: 0.8, b: 0.118919104, a: 0}
+  - regionName: Fire
+    material: {fileID: 2100000, guid: 9b33d98fd84cc764c9ad7bf4d8def645, type: 2}
+    color: {r: 0.8, g: 0.043137264, b: 0.11249328, a: 0}
+  - regionName: Dessert
+    material: {fileID: 2100000, guid: 47de45b9995dde441a7c7000eff8dcde, type: 2}
+    color: {r: 0.7750804, g: 0.8, b: 0.043137264, a: 0}
+  - regionName: Maze
+    material: {fileID: 2100000, guid: 11c726ddd2dd7f74cbb39bd3d243fd71, type: 2}
+    color: {r: 0.3018868, g: 0.17204942, b: 0.1523674, a: 0}
   regionNames:
-  - ice1
-  - ice2
-  - ice3
-  - ice4
+  - Ice
+  - Jungle
+  - Fire
+  - Dessert
+  - Maze

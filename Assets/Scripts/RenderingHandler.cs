@@ -13,7 +13,6 @@ public class RenderingHandler : MonoBehaviour
     static Queue<Vector2Int> squaresRendered = new Queue<Vector2Int>();
     static List<Vector2Int> currentRender = new List<Vector2Int>();
     public TextureSettings textureSettings;
-    public TextureSettings.Region[] regions;
     public GameObject parent;
     public bool useQueue = true;
     public bool setRerender = true;
@@ -24,10 +23,6 @@ public class RenderingHandler : MonoBehaviour
 
     private void Awake()
     {
-        if (textureSettings.regions == null)
-        {
-            textureSettings.regions = regions;
-        }
         squareRenderQueue = new Queue<Vector3Int>();
         instance = this;
     }
@@ -44,14 +39,22 @@ public class RenderingHandler : MonoBehaviour
 
     void RenderCubes(Queue<Vector3Int> renderSquares)//Third vector value is for distance and used for render quality
     {
-        lock (squareRenderQueue)
+        Vector3Int point;
+        while (squareRenderQueue.Count > 0)
         {
-            int count = squareRenderQueue.Count;
-            for (int i = 0; i < count; i++)
+            lock (squareRenderQueue)
             {
-                Vector3Int point = renderSquares.Dequeue();
-                Mazegeneration.matrix[point.x, point.y].RenderMesh(textureSettings, parent);
+                try
+                {
+                    point = renderSquares.Dequeue();
+                }
+                catch
+                {
+                    break;
+                }
             }
+            Mazegeneration.matrix[point.x, point.y].RenderMesh(textureSettings, parent);
+            Mazegeneration.matrix[point.x, point.y].RenderAdditions(textureSettings);
         }
     }
 

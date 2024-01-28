@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class SquareData
 {
+    public bool isBoss = false;
     public Dictionary<String, int> regions;
     public string region;
     public int regionIndex;
@@ -22,6 +23,7 @@ public class SquareData
     public bool isLocked;
     public MeshData meshData;
     public Color color;
+    int meshCount = 0;
 
     public SquareData(int cubeSize, Vector3 location)
     {
@@ -61,8 +63,18 @@ public class SquareData
     }
     public void GetMeshData(MazeWallsSettings wallSettings)
     {
-        meshData.CreateMeshData(sides, extends, corners, region, wallSettings);
+        meshData.CreateMeshData(this, wallSettings);
         hasChanged = true;
+        meshCount++;
+        Debug.Log(meshCount);
+    }
+
+    public void RenderAdditions(TextureSettings textureSettings)
+    {
+        if(isRendered)
+        {
+            meshData.RenderAdditions(textureSettings, "Assets/Prefabs/");
+        }
     }
 
     public void RenderMesh(TextureSettings textureSettings, GameObject parent)

@@ -260,11 +260,7 @@ MonoBehaviour:
   cubeSettings: {fileID: 11400000, guid: d399fa41405c6614b92f38b0476a1e13, type: 2}
   wallsSettings: {fileID: 11400000, guid: 68a6303a60e0613469514b3a7dd0d6ad, type: 2}
   mazeSettings: {fileID: 11400000, guid: 1ca03a040f1d2044fa7d0ae1d4498e06, type: 2}
-  textureSettings: {fileID: 0}
-  regions:
-  - regionName: Default
-    material: {fileID: 2100000, guid: 11c726ddd2dd7f74cbb39bd3d243fd71, type: 2}
-    color: {r: 0.20754719, g: 0.16349237, b: 0.16349237, a: 0}
+  textureSettings: {fileID: 11400000, guid: 6243cae87eb252c469dceedfbc5a3381, type: 2}
   CubeParent: {fileID: 1713831850}
   MazeParent: {fileID: 1434876186}
 --- !u!114 &270733032
@@ -281,11 +277,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   wallsSettings: {fileID: 11400000, guid: 68a6303a60e0613469514b3a7dd0d6ad, type: 2}
   mazeSettings: {fileID: 11400000, guid: 1ca03a040f1d2044fa7d0ae1d4498e06, type: 2}
-  textureSettings: {fileID: 0}
-  regions:
-  - regionName: Default
-    material: {fileID: 2100000, guid: 11c726ddd2dd7f74cbb39bd3d243fd71, type: 2}
-    color: {r: 0.16981131, g: 0.117746525, b: 0.117746525, a: 0}
+  textureSettings: {fileID: 11400000, guid: 6243cae87eb252c469dceedfbc5a3381, type: 2}
   viewer: {fileID: 101157049}
   renderDistance: 10
   sqrviewerMoveThresholdForUpdate: 2
@@ -301,7 +293,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b95e4a1a9340a274486383a15599382d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  settings: {fileID: 0}
+  textureSettings: {fileID: 11400000, guid: 6243cae87eb252c469dceedfbc5a3381, type: 2}
+  regions:
+  - regionName: Default
+    material: {fileID: 2100000, guid: 11c726ddd2dd7f74cbb39bd3d243fd71, type: 2}
+    color: {r: 0.3490566, g: 0.17946778, b: 0.17946778, a: 0}
   parent: {fileID: 270733029}
   useQueue: 1
   setRerender: 0

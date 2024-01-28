@@ -3,12 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 
 public class MeshData
 {
+    int itemIndex;
+    ItemLocation[] items;
     public Vector3[] vertices;
     Vector2[] uvs;
     int[] triangles;
@@ -29,6 +32,8 @@ public class MeshData
     GameObject squareObject;
     public MeshData()
     {
+        itemIndex = 0;
+        items = new ItemLocation[50];
         newCorners = new Vector3[4];
         cornerIndexes = new int[4];
         triangleIndex = 0;
@@ -201,21 +206,25 @@ public class MeshData
         }
         return false;
     }
-
-    public void CreateMeshData(bool[] sides, bool[] extends, Vector3[] corners ,string region ,MazeWallsSettings wallSettings)
+    public void CreateMeshData(SquareData square,MazeWallsSettings wallSettings)
     {
-        vertIndex= 0;
+        
+        vertIndex = 0;
         triangleIndex= 0;
-        this.sides = sides;
-        this.extends = extends;
+        this.sides = square.sides;
+        this.extends = square.extends;
         height = wallSettings.wallHeight;
         width = wallSettings.wallWidth;
-        this.region = region;
+        this.region = square.region;
 
-        newCorners[0] = corners[0];
-        newCorners[1] = corners[1];
-        newCorners[2] = corners[2];
-        newCorners[3] = corners[3];
+        newCorners[0] = square.corners[0];
+        newCorners[1] = square.corners[1];
+        newCorners[2] = square.corners[2];
+        newCorners[3] = square.corners[3];
+        if (square.isBoss)
+        {
+            AddAddition("BossStatue", square.location, new Quaternion(0, 0, 0, 0));
+        }
 
         InitializeArays();
         GetNewValues();
@@ -255,6 +264,28 @@ public class MeshData
         triangles = new int[count * 6];
     }
 
+    public void AddAddition(string name, Vector3 position, Quaternion rotation)
+    {
+        items[itemIndex] = new ItemLocation(name, position, rotation);
+        itemIndex++;
+    }
+    public void RenderAdditions(TextureSettings textureSettings, string mainFile)
+    {
+        for(int i = 0;i < items.Length;i++)
+        {
+            if (items[i].exists)
+            {
+                if (items[i].o != null)
+                {
+                    Debug.Log("Set Active");
+                    items[i].o.SetActive(true);
+                    continue;
+                }
+                //GameObject prefab = Resources.Load<GameObject>($"{mainFile}{items[i].name}");
+                items[i].o = UnityEngine.Object.Instantiate(textureSettings.bossStatue, items[i].position, items[i].rotation, squareObject.transform);
+            }
+        }
+    }
     void calculateNormals()
     {
 
@@ -272,7 +303,7 @@ public class MeshData
         //{
         //    str += vertices[i].ToString() + ",";
         //}
-        //Debug.Log(str);
+        //Debug.Log(str
         if (triangles.Length > 0)
         {
             squareObject = new GameObject("Mesh", typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider));
@@ -297,24 +328,17 @@ public class MeshData
     }
     public void LoadTextures(TextureSettings textureSettings)//somehow this loads with a seperate texturesettings instance throughout the rendering proces
     {
-        Debug.Log(region);
-        if (textureSettings.regionNames.Contains(region))
+        try
         {
-            try
-            {
-                mat = textureSettings.materials[region];
-            }
-            catch (Exception ex)
-            {
-                Debug.Log("Texture Problem: " + ex.Message);
-                mat = textureSettings.defaultmaterial;
-            }
+            mat = textureSettings.materials[region];
         }
-        else
+        catch (Exception ex)
         {
+            Debug.Log(region);
+            Debug.Log("Texture Problem: " + ex.Message);
             mat = textureSettings.defaultmaterial;
         }
-        
+
         squareObject.GetComponent<MeshRenderer>().material = mat;
     }
     public void UpdateMesh()
@@ -329,5 +353,22 @@ public class MeshData
         squareObject.GetComponent<MeshCollider>().sharedMesh = mesh;
         squareObject.GetComponent<MeshRenderer>().material = mat;
 
+    }
+    struct ItemLocation
+    {
+        public string name;
+        public Vector3 position;
+        public quaternion rotation;
+        public GameObject o;
+        public bool exists;
+
+        public ItemLocation(string name, Vector3 position, Quaternion rotation)
+        {
+            o = null;
+            this.name = name;
+            this.position = position;
+            this.rotation = rotation;
+            exists = true;
+        }
     }
 }

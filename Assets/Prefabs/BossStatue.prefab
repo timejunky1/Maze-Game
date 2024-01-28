@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4324038609228242953}
   m_Layer: 0
-  m_Name: MazeSquare
+  m_Name: BossStatue
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

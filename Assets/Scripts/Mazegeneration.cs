@@ -14,10 +14,11 @@ public class Mazegeneration
     public List<Vector3> wallSquares = new List<Vector3>();
     MazeSettings maze;
     MazeWallsSettings walls;
+    TextureSettings textureSettings;
     bool isFirstMaze = true;
     int regionLoadIndex;
 
-    public Mazegeneration(MazeSettings _maze, MazeWallsSettings walls)
+    public Mazegeneration(MazeSettings _maze, MazeWallsSettings walls, TextureSettings textureSettings)
     {
         lockedSquares = new Stack<Vector2Int>();
         baseSquares = new List<Vector2Int>();
@@ -26,6 +27,7 @@ public class Mazegeneration
         maze = _maze;
         matrix = new SquareData[maze.mazeSize, maze.mazeSize];
         this.walls = walls;
+        this.textureSettings = textureSettings;
     }
     public void LoadMaze() {
         for (int x = 0; x < matrix.GetLength(0); x++)
@@ -123,6 +125,7 @@ public class Mazegeneration
         {
             matrix[pos.x,pos.y].extends = CalcualateExtends(matrix[pos.x, pos.y].sides, pos.x,pos.y);
         }
+        CalculatePlacesOfIntrest(placesOfIntrest, textureSettings);
         foreach (Vector2Int pos in visitedSquares)
         {
             matrix[pos.x, pos.y].GetMeshData(walls);
@@ -316,8 +319,8 @@ public class Mazegeneration
                     int percent = UnityEngine.Random.Range(0, 100);
                     if (percent <= maze.bossChance)
                     {
+                        matrix[point.x, point.y].isBoss = true;
                         int rndRegion = UnityEngine.Random.Range(0, textureSettings.regionNames.Count);
-                        Debug.Log(textureSettings.regionNames.Count);
                         bossLocations[count] = new Vector3Int(point.x, point.y, rndRegion);
                         string region = textureSettings.regionNames[rndRegion];
                         List<Vector3Int> squareRegions = LoadRegion(point.x, point.y, maze.regionSpread, false);

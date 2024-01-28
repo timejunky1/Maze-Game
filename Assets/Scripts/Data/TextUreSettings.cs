@@ -5,6 +5,7 @@ using UnityEngine;
 [CreateAssetMenu()]
 public class TextureSettings : UpdatableData
 {
+    public GameObject bossStatue;
     public Material defaultmaterial;
     public Region[] regions;
     public List<string> regionNames;
@@ -13,7 +14,6 @@ public class TextureSettings : UpdatableData
 
     public void ReloadDicts()
     {
-        Debug.Log("ReloadDicts");
         regionNames = new List<string>();
         materials = new Dictionary<string, Material>();
         colors = new Dictionary<string, Color>();
