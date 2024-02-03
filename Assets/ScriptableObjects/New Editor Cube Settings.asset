@@ -17,7 +17,8 @@ MonoBehaviour:
   region: 1
   canSpawn: 0
   regionValue: 1
-  Top: 1
-  Right: 1
-  Bot: 1
+  Top: 0
+  Right: 0
+  Bot: 0
   Left: 0
+  IsBoss: 0

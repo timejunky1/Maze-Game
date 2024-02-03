@@ -123,7 +123,7 @@ public class Mazegeneration
         }
         foreach (Vector2Int pos in visitedSquares)
         {
-            matrix[pos.x,pos.y].extends = CalcualateExtends(matrix[pos.x, pos.y].sides, pos.x,pos.y);
+            matrix[pos.x,pos.y].pillars = CalculatePillars(matrix[pos.x, pos.y].sides, pos.x,pos.y);
         }
         CalculatePlacesOfIntrest(placesOfIntrest, textureSettings);
         foreach (Vector2Int pos in visitedSquares)
@@ -158,7 +158,7 @@ public class Mazegeneration
         }
         foreach (Vector2Int pos in lockedSquares)
         {
-            matrix[pos.x, pos.y].extends = CalcualateExtends(matrix[pos.x, pos.y].sides, pos.x, pos.y);
+            matrix[pos.x, pos.y].pillars = CalculatePillars(matrix[pos.x, pos.y].sides, pos.x, pos.y);
         }
     }
     void ManageTurn(int xpos, int ypos, int newXPos, int newYPos)
@@ -468,87 +468,41 @@ public class Mazegeneration
         return result;
     }
 
-    public bool[] CalcualateExtends(bool[] sides, int x, int y)
+    public bool[] CalculatePillars(bool[] sides, int x, int y)
     {
-        bool[] extends = new bool[sides.Length * 2];
-        //for( int i = 0; i < 4; i++ )
-        //{
-        //    if(i == 1 || i == 3)
-        //    {
-        //        signX = -signX;
-        //    }
-        //    if (grid[x + -(i % 2 - 1), y - i % 2] != null && sides[i] && sides[(i+1)%4] == false && grid[x + -(i%2-1), y - i%2].sides[i] == false && grid[x -signX, y + signY].extends[(i*2+6)%8] == false)//bot
-        //    {
-        //        extends[(i*2+1)%8] = true;
-        //    }
-        //    if(i == 1 || i == 3)
-        //    {
-        //        signY = -signY;
-        //        signX = -signX;
-        //    }
-        //    if (grid[x + (i % 2 - 1), y + i % 2] != null && sides[i] && sides[(i+3)%4] == false && grid[x + (i % 2 - 1), y + i%2].sides[i] == false && grid[x + signX, y + signY].extends[(i*2+3)%8] == false)
-        //    {
-        //        extends[(i * 2)%8] = true;
-        //    }
-        //    if(i == 1 || i == 3)
-        //    {
-        //        signX = -signX;
-        //    }
-
-        //}
-        try
+        bool[] pillars = new bool[] {true, true, true ,true };
+        for(int i = 0; i<sides.Length; i++)
         {
-            if (x < matrix.GetLength(0) - 1)
+            if (sides[i])
             {
-                if (sides[0] && sides[1] == false && matrix[x + 1, y].sides[0] == false && matrix[x + 1, y + 1].extends[6] == false)//top
-                {
-                    extends[1] = true;
-                }
-                if (sides[2] && sides[1] == false && matrix[x + 1, y].sides[2] == false && matrix[x + 1, y - 1].extends[7] == false)
-                {
-                    extends[4] = true;
-                }
-            }
-            if (x > 0)
-            {
-                if (sides[0] && sides[3] == false && matrix[x - 1, y].sides[0] == false && matrix[x - 1, y + 1].extends[3] == false)
-                {
-                    extends[0] = true;
-                }
-                if (sides[2] && sides[3] == false && matrix[x - 1, y].sides[2] == false && matrix[x - 1, y - 1].extends[2] == false)//bot
-                {
-                    extends[5] = true;
-                }
-            }
-            if (y > 0)
-            {
-                if (sides[3] && sides[2] == false && matrix[x, y - 1].sides[3] == false && matrix[x - 1, y - 1].extends[1] == false)
-                {
-                    extends[6] = true;
-                }
-                if (sides[1] && sides[2] == false && matrix[x, y - 1].sides[1] == false && matrix[x + 1, y - 1].extends[0] == false)//right
-                {
-                    extends[3] = true;
-                }
-            }
-            if (y < matrix.GetLength(1) - 1)
-            {
-                if (sides[1] && sides[0] == false && matrix[x, y + 1].sides[1] == false && matrix[x + 1, y + 1].extends[5] == false)
-                {
-                    extends[2] = true;
-                }
-                if (sides[3] && sides[0] == false && matrix[x, y + 1].sides[3] == false && matrix[x - 1, y + 1].extends[4] == false)//left
-                {
-                    extends[7] = true;
-                }
+                pillars[i] = false;
+                pillars[(i+1)%4] = false;
             }
         }
-        catch(Exception e)
+        for(int i = 0; i<pillars.Length; i++)
         {
-            Debug.Log(e.Message);
+            if (pillars[i])
+            {
+                if(i == 0)
+                {
+                    pillars[i] = matrix[x - 1, y].sides[0] || matrix[x, y + 1].sides[3];
+                }
+                if (i == 1)
+                {
+                    pillars[i] = matrix[x, y+1].sides[1] || matrix[x+1, y].sides[0];
+                }
+                if (i == 2)
+                {
+                    pillars[i] = matrix[x + 1, y].sides[2] || matrix[x, y - 1].sides[1];
+                }
+                if (i == 3)
+                {
+                    pillars[i] = matrix[x, y-1].sides[3] || matrix[x-1, y].sides[2];
+                }
+            }
         }
         
-        return extends;
+        return pillars;
     }
 }
 

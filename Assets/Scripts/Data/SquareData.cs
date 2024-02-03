@@ -14,7 +14,7 @@ public class SquareData
     public Vector3 location;
     public bool visited;
     public bool[] sides;
-    public bool[] extends;
+    public bool[] pillars;
     public Vector3[] corners;
 
     public bool hasMesh;
@@ -38,7 +38,7 @@ public class SquareData
         canSpawn = true;
         visited = false;
         sides = new bool[4]{ true, true, true, true }; //sides sterting with top left
-        extends = new bool[8]{ false, false, false, false, false, false, false, false };//The values of the extends starting with top left 
+        pillars = new bool[4]{ false, false, false, false};//The values of the extends starting with top left 
         this.location = location;
         CalculateCorners(cubeSize);
     }
@@ -48,9 +48,9 @@ public class SquareData
         {
             sides[i] = false;
         }
-        for (int i = 0; i < extends.Length; i++)
+        for (int i = 0; i < pillars.Length; i++)
         {
-            extends[i] = false;
+            pillars[i] = false;
         }
     }
     void CalculateCorners(int cubeSize)
@@ -66,7 +66,6 @@ public class SquareData
         meshData.CreateMeshData(this, wallSettings);
         hasChanged = true;
         meshCount++;
-        Debug.Log(meshCount);
     }
 
     public void RenderAdditions(TextureSettings textureSettings)
@@ -81,12 +80,14 @@ public class SquareData
     {
         if(isRendered && !hasChanged)
         {
+            Debug.Log("load textures");
             meshData.LoadTextures(textureSettings);
             return;
         }
         hasMesh = meshData.HasMesh();
         if (!hasMesh)
         {
+            Debug.Log("create mesh");
             meshData.CreateMesh(parent);
             meshData.LoadTextures(textureSettings);
             meshData.RenderMesh(true);
@@ -94,6 +95,7 @@ public class SquareData
         }
         else if (hasMesh && hasChanged)
         {
+            Debug.Log("update mesh");
             meshData.UpdateMesh();
             meshData.LoadTextures(textureSettings);
             meshData.RenderMesh(true);

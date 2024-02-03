@@ -3,15 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class MeshData
 {
-    int itemIndex;
-    ItemLocation[] items;
+    int cubeWidth;
+    ItemLocation[,,] items;
     public Vector3[] vertices;
     Vector2[] uvs;
     int[] triangles;
@@ -21,7 +21,7 @@ public class MeshData
     int[] cornerIndexes;
 
     bool[] sides;
-    bool[] extends;
+    bool[] pillars;
     int height;
     int width;
     int triangleIndex;
@@ -32,8 +32,6 @@ public class MeshData
     GameObject squareObject;
     public MeshData()
     {
-        itemIndex = 0;
-        items = new ItemLocation[50];
         newCorners = new Vector3[4];
         cornerIndexes = new int[4];
         triangleIndex = 0;
@@ -41,6 +39,7 @@ public class MeshData
     }
     void GetNewValues()
     {
+        int counter = 0;
         if (sides[0])//top
         {
             newCorners[0] += new Vector3(0, 0, -width);
@@ -65,72 +64,66 @@ public class MeshData
     void AddVertices()
     {
         Vector3 verticy = newCorners[0];
-        if (extends[0] && width>0)
+        if (pillars[0] && width>0)
         {
-            verticy += new Vector3(-width, 0, width);
-            AddVertLine(verticy);
-            verticy += new Vector3(0, 0, -width);
+            Debug.Log("Pillar 0");
+            AddVertLine(verticy + new Vector3(0, 0, -width));
+            AddVertLine(verticy + new Vector3(width, 0, -width));
+            cornerIndexes[0] = vertIndex;
+            AddVertLine(verticy + new Vector3(width, 0, 0));
+        }
+        else
+        {
+            Debug.Log("Side 0");
+            cornerIndexes[0] = vertIndex;
             AddVertLine(verticy);
         }
-        cornerIndexes[0] = vertIndex;
-        AddVertLine(newCorners[0]);
+        
         verticy = newCorners[1];
-        if (extends[2] && width > 0)
+        if (pillars[1] && width > 0)
         {
-            verticy += new Vector3(width, 0, width);
-            AddVertLine(verticy);
-            verticy += new Vector3(-width, 0, 0);
+            Debug.Log("Pillar 1");
+            AddVertLine(verticy + new Vector3(-width, 0, 0));
+            AddVertLine(verticy + new Vector3(-width, 0, -width));
+            cornerIndexes[1] = vertIndex;
+            AddVertLine(verticy + new Vector3(0, 0, -width));
+        }
+        else
+        {
+            Debug.Log("Side 1");
+            cornerIndexes[1] = vertIndex;
             AddVertLine(verticy);
         }
-        cornerIndexes[1] = vertIndex;
-        AddVertLine(newCorners[1]);
-        if (extends[1] && width > 0)
-        {
-            verticy += new Vector3(width, 0, 0);
-            AddVertLine(verticy);
-            verticy += new Vector3(0, 0, width);
-            AddVertLine(verticy);
-        }
+        
         verticy = newCorners[2];
-        if (extends[4] && width > 0)
+        if (pillars[2] && width > 0)
         {
-            verticy += new Vector3(width, 0, -width);
-            AddVertLine(verticy);
-            verticy += new Vector3(0, 0, width);
+            Debug.Log("Pillar 2");
+            AddVertLine(verticy + new Vector3(0, 0, width));
+            AddVertLine(verticy + new Vector3(-width, 0, width));
+            cornerIndexes[2] = vertIndex;
+            AddVertLine(verticy + new Vector3(-width, 0, 0));
+        }
+        else
+        {
+            Debug.Log("Side 2");
+            cornerIndexes[2] = vertIndex;
             AddVertLine(verticy);
         }
-        cornerIndexes[2] = vertIndex;
-        AddVertLine(newCorners[2]);
-        if (extends[3] && width > 0)
-        {
-            verticy += new Vector3(0, 0, -width);
-            AddVertLine(verticy);
-            verticy += new Vector3(width, 0, 0);
-            AddVertLine(verticy);
-        }
+
         verticy = newCorners[3];
-        if (extends[6] && width > 0)
+        if (pillars[3] && width > 0)
         {
-            verticy += new Vector3(-width, 0, -width);
-            AddVertLine(verticy);
-            verticy += new Vector3(width, 0, 0);
-            AddVertLine(verticy);
+            Debug.Log("Pillar 3");
+            AddVertLine(verticy + new Vector3(width, 0, 0));
+            AddVertLine(verticy + new Vector3(width, 0, width));
+            cornerIndexes[3] = vertIndex;
+            AddVertLine(verticy + new Vector3(0, 0, width));
         }
-        cornerIndexes[3] = vertIndex;
-        AddVertLine(newCorners[3]);
-        if (extends[5] && width > 0)
+        else
         {
-            verticy += new Vector3(-width, 0, 0);
-            AddVertLine(verticy);
-            verticy += new Vector3(0, 0, -width);
-            AddVertLine(verticy);
-        }
-        verticy = newCorners[0];
-        if (extends[7] && width > 0)
-        {
-            verticy += new Vector3(0, 0, width);
-            AddVertLine(verticy);
-            verticy += new Vector3(-width, 0, 0);
+            Debug.Log("Side 3");
+            cornerIndexes[3] = vertIndex;
             AddVertLine(verticy);
         }
     }
@@ -160,30 +153,60 @@ public class MeshData
     }
     void CreateWalls()
     {
+        int side = 0;
         int count = vertices.Length;
-        for (int i = 0; i < count/2 - 1; i++)
+        Debug.Log($"Vertcies: {vertices.Length}");
+        Debug.Log($"{cornerIndexes[0]}, {cornerIndexes[1]}, {cornerIndexes[2]}, {cornerIndexes[3]}");
+        Debug.Log($"{pillars[0]}, {pillars[1]}, {pillars[2]}, {pillars[3]}");
+        for (int i = 0; i < cornerIndexes.Length-1; i++)
         {
-                if(i == 0 && !sides[0])
-                {
-                    continue;
-                }
-                else if (EvaluateSide(sides[1], extends[1], cornerIndexes[1], i))
-                {
-                    continue;
-                }
-                else if(EvaluateSide(sides[2], extends[3], cornerIndexes[2], i))
-                {
-                    continue;
-                }
-                triangles[triangleIndex] = i * 2;
-                triangles[triangleIndex + 1] = i * 2 + 1;
-                triangles[triangleIndex + 2] = i * 2 + 2;
-                triangles[triangleIndex + 3] = i * 2 + 2;
-                triangles[triangleIndex + 4] = i * 2 + 1;
-                triangles[triangleIndex + 5] = i * 2 + 3;
-                triangleIndex = triangleIndex + 6;
+            GameObject o = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            o.GetComponent<Transform>().position = vertices[cornerIndexes[i]];
         }
-        if (sides[3] && extends[7] == false)
+        for (int i = 0; i < count-2; i+=2)
+        {
+            Debug.Log(i);
+            try
+            {
+                if (i == 0 && cornerIndexes[side] == i)
+                {
+                    Debug.Log($"{side}: {sides[side]}: {i}");
+                    bool s = sides[side];
+                    side++;
+                    if (!s)
+                    {
+                        Debug.Log("Continue");
+                        continue;
+                    }
+                }
+                if (cornerIndexes[side] == i)
+                {
+                    Debug.Log($"{side}: {sides[side]}: {i}");
+                    bool s = sides[side];
+                    side++;
+                    if (!s)
+                    {
+                        Debug.Log("Continue");
+                        continue;
+                    }
+                }
+                Debug.Log($"index: {i}");
+                triangles[triangleIndex] = i;
+                triangles[triangleIndex + 1] = i + 1;
+                triangles[triangleIndex + 2] = i + 2;
+                triangles[triangleIndex + 3] = i + 2;
+                triangles[triangleIndex + 4] = i + 1;
+                triangles[triangleIndex + 5] = i + 3;
+                triangleIndex = triangleIndex + 6;
+
+            }
+            catch (Exception e)
+            {
+                Debug.Log(e.Message);
+            }
+
+        }
+        if (sides[3])
         {
             triangles[triangleIndex] = (count - 2);
             triangles[triangleIndex + 1] = (count - 1);
@@ -191,31 +214,20 @@ public class MeshData
             triangles[triangleIndex + 3] = (0);
             triangles[triangleIndex + 4] = (count - 1);
             triangles[triangleIndex + 5] = (1);
-            triangleIndex= triangleIndex + 6;
+            triangleIndex = triangleIndex + 6;
         }
-    }
-    bool EvaluateSide(bool eSide, bool eExtention,int pointValue,int count)
-    {
-        if (count == pointValue/2 && !eExtention && !eSide)
-        {
-            return true;
-        }
-        if (count - 2 == pointValue/2 && !eSide && eExtention)
-        {
-            return true;
-        }
-        return false;
     }
     public void CreateMeshData(SquareData square,MazeWallsSettings wallSettings)
     {
-        
         vertIndex = 0;
         triangleIndex= 0;
         this.sides = square.sides;
-        this.extends = square.extends;
+        this.pillars = square.pillars;
         height = wallSettings.wallHeight;
         width = wallSettings.wallWidth;
+        cubeWidth = (int)(square.corners[1].x - square.corners[0].x);
         this.region = square.region;
+        items = new ItemLocation[cubeWidth,height,cubeWidth];
 
         newCorners[0] = square.corners[0];
         newCorners[1] = square.corners[1];
@@ -223,15 +235,17 @@ public class MeshData
         newCorners[3] = square.corners[3];
         if (square.isBoss)
         {
-            AddAddition("BossStatue", square.location, new Quaternion(0, 0, 0, 0));
+            Debug.Log("Add Boss Statue");
+            AddAddition("BossStatue", new Vector3(0,0,0), new Quaternion(0, 0, 0, 0));
         }
+
 
         InitializeArays();
         GetNewValues();
         AddVertices();
         AddUvs();
         CreateWalls();
-        CreateFloor();
+        //CreateFloor();
     }
 
     public void InitializeArays()
@@ -239,9 +253,9 @@ public class MeshData
         int count = 8;
         if (width > 0)
         {
-            for (int i = 0; i < extends.Length; i++)
+            for (int i = 0; i < pillars.Length; i++)
             {
-                if (extends[i])
+                if (pillars[i])
                 {
                     count = count + 4;
                 }
@@ -249,41 +263,57 @@ public class MeshData
         }
         vertices = new Vector3[count];
         uvs = new Vector2[count];
-        count = (count / 2) + 1;
+        count = 0;
         for (int i = 0; i < sides.Length; i++)
         {
-            if (!sides[i])
-            {
-                count--;
-            }
+            count += 18;
+            //if (sides[i])
+            //{
+            //    count+=6;
+            //}
+            //if (pillars[i])
+            //{
+            //    count += 12;
+            //}
         }
-        if (sides[3] && extends[7] == false)
-        {
-            count++;
-        }
-        triangles = new int[count * 6];
+        triangles = new int[count];
     }
 
     public void AddAddition(string name, Vector3 position, Quaternion rotation)
     {
-        items[itemIndex] = new ItemLocation(name, position, rotation);
-        itemIndex++;
+        Debug.Log($"position x: {position.x} y: {position.y} z: {position.z}");
+        Vector3Int location = new Vector3Int((int)(position.x + cubeWidth/2), (int)(position.y), (int)(position.z + cubeWidth / 2));
+        Debug.Log($"location x: {location.x} y: {location.y} z: {location.z}");
+        if (items[location.x, location.y, location.z].exists) return;
+        items[location.x, location.y, location.z] = new ItemLocation(name, position, rotation);
     }
     public void RenderAdditions(TextureSettings textureSettings, string mainFile)
     {
-        for(int i = 0;i < items.Length;i++)
+        Debug.Log("Render Additions");
+        for(int x = 0;x < items.GetLength(0);x++)
         {
-            if (items[i].exists)
+            for(int y = 0;y < items.GetLength(1); y++)
             {
-                if (items[i].o != null)
+                for (int z = 0; z < items.GetLength(2); z++)
                 {
-                    Debug.Log("Set Active");
-                    items[i].o.SetActive(true);
-                    continue;
+                    if (items[x, y, z].exists)
+                    {
+                        if(items[x, y, z].exists)
+                        {
+                            if (items[x,y,z].o != null)
+                            {
+                                Debug.Log("Set Active");
+                                items[x, y, z].o.SetActive(true);
+                                continue;
+                            }
+                            //GameObject prefab = Resources.Load<GameObject>($"{mainFile}{items[i].name}");
+                            items[x, y, z].o = UnityEngine.Object.Instantiate(textureSettings.bossStatue, items[x, y, z].position, items[x, y, z].rotation, squareObject.transform);
+                            items[x, y, z].o.SetActive(true);
+                        }
+                    }
                 }
-                //GameObject prefab = Resources.Load<GameObject>($"{mainFile}{items[i].name}");
-                items[i].o = UnityEngine.Object.Instantiate(textureSettings.bossStatue, items[i].position, items[i].rotation, squareObject.transform);
             }
+            
         }
     }
     void calculateNormals()
@@ -358,7 +388,7 @@ public class MeshData
     {
         public string name;
         public Vector3 position;
-        public quaternion rotation;
+        public Quaternion rotation;
         public GameObject o;
         public bool exists;
 

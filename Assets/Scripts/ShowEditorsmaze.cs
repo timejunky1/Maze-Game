@@ -151,52 +151,42 @@ public class ShowEditorsmaze : MonoBehaviour
     void RenderCube(TextureSettings textureSettings)//destroy the initial cube
     {
         Debug.Log("RenderCube");
-        Debug.Log(textureSettings.regionNames[cubeSettings.region]);
         square = new SquareData(cubeSettings.cubeSize, new Vector3(0,0,0));
         square.region = textureSettings.regionNames[cubeSettings.region];
         square.regionValue = cubeSettings.regionValue;
-        for (int i = 0; i < square.extends.Length; i++)
+        for (int i = 0; i < square.pillars.Length; i++)
         {
-            square.extends[i] = false;
+            square.sides[i] = false;
+            square.pillars[i] = true;
         }
-        if (!cubeSettings.Top)
+        if (cubeSettings.Top)
         {
-            square.sides[0] = false;
+            square.sides[0] = true;
+            square.pillars[0] = false;
+            square.pillars[1] = false;
         }
-        if (!cubeSettings.Right)
+        if (cubeSettings.Right)
         {
-            square.sides[1] = false;
+            square.sides[1] = true;
+            square.pillars[1] = false;
+            square.pillars[2] = false;
         }
-        if (!cubeSettings.Bot)
+        if (cubeSettings.Bot)
         {
-            square.sides[2] = false;
+            square.sides[2] = true;
+            square.pillars[2] = false;
+            square.pillars[3] = false;
         }
-        if (!cubeSettings.Left)
+        if (cubeSettings.Left)
         {
-            square.sides[3] = false;
+            square.sides[3] = true;
+            square.pillars[3] = false;
+            square.pillars[0] = false;
         }
-        if (!cubeSettings.Top)
-        {
-            if (square.sides[3]) { square.extends[7] = true; }
-            if (square.sides[1]) { square.extends[2] = true; }
-        }
-        if (!cubeSettings.Right)
-        {
-            if (square.sides[0]) { square.extends[1] = true; }
-            if (square.sides[2]) { square.extends[4] = true; }
-        }
-        if (!cubeSettings.Bot)
-        {
-            if (square.sides[1]) { square.extends[3] = true; }
-            if (square.sides[3]) { square.extends[6] = true; }
-        }
-        if (!cubeSettings.Left)
-        {
-            if (square.sides[2]) { square.extends[5] = true; }
-            if (square.sides[0]) { square.extends[0] = true; }
-        }
+        square.isBoss = cubeSettings.IsBoss;
         square.GetMeshData(wallsSettings);
         square.RenderMesh(textureSettings, CubeParent);
+        square.RenderAdditions(textureSettings);
     }
     void LoadMaze()
     {

@@ -13,4 +13,5 @@ public class EditorCubeSettings: UpdatableData
     public bool Right;
     public bool Bot;
     public bool Left;
+    public bool IsBoss;
 }
