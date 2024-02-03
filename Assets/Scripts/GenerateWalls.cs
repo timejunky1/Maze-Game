@@ -6,6 +6,7 @@ using System.Threading;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Animations;
 using UnityEngine.UIElements;
 
 public class MeshData
@@ -18,22 +19,32 @@ public class MeshData
     string region;
 
     public Vector3[] newCorners;
+    public Vector3[] cubeCorners;
     int[] cornerIndexes;
 
     bool[] sides;
     bool[] pillars;
     int height;
     int width;
+    Vector2 centre;
     int triangleIndex;
     int vertIndex;
 
     Material mat;
     Mesh mesh;
     GameObject squareObject;
+    GameObject floor;
+    GameObject walls;
+
+    bool hasFloor;
+    bool hasmesh;
     public MeshData()
     {
         newCorners = new Vector3[4];
+        cubeCorners = new Vector3[4];
         cornerIndexes = new int[4];
+        hasFloor = false;
+        hasmesh = false;
         triangleIndex = 0;
         vertIndex= 0;
     }
@@ -143,13 +154,33 @@ public class MeshData
 
     void CreateFloor()
     {
-        triangles[triangleIndex] = cornerIndexes[0];
-        triangles[triangleIndex + 1] = cornerIndexes[1];
-        triangles[triangleIndex + 2] = cornerIndexes[3];
-        triangles[triangleIndex + 3] = cornerIndexes[3];
-        triangles[triangleIndex + 4] = cornerIndexes[1];
-        triangles[triangleIndex + 5] = cornerIndexes[2];
-        triangleIndex = triangleIndex + 6;
+        int[] floorT = new int[6];
+        Vector3[] floorV = cubeCorners;
+        Vector2[] floorUV = new Vector2[cubeCorners.Length];
+        for(int i = 0; i < cubeCorners.Length; i++)
+        {
+            floorUV[i] = new Vector2(cubeCorners[i].x, cubeCorners[i].y);
+        }
+
+        floorT[0] = 0;
+        floorT[1] = 1;
+        floorT[2] = 3;
+        floorT[3] = 3;
+        floorT[4] = 1;
+        floorT[5] = 2;
+
+        floor = new GameObject("Floor", typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider));
+        floor.transform.parent = squareObject.transform;
+        Mesh f = new Mesh();
+        f.Clear();
+        f.vertices = floorV;
+        f.uv = floorUV;
+        f.triangles = floorT;
+        f.RecalculateNormals();
+        floor.GetComponent<MeshFilter>().mesh = f;
+        floor.GetComponent<MeshCollider>().sharedMesh = f;
+        hasFloor = true;
+
     }
     void CreateWalls()
     {
@@ -158,11 +189,6 @@ public class MeshData
         Debug.Log($"Vertcies: {vertices.Length}");
         Debug.Log($"{cornerIndexes[0]}, {cornerIndexes[1]}, {cornerIndexes[2]}, {cornerIndexes[3]}");
         Debug.Log($"{pillars[0]}, {pillars[1]}, {pillars[2]}, {pillars[3]}");
-        for (int i = 0; i < cornerIndexes.Length-1; i++)
-        {
-            GameObject o = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            o.GetComponent<Transform>().position = vertices[cornerIndexes[i]];
-        }
         for (int i = 0; i < count-2; i+=2)
         {
             Debug.Log(i);
@@ -219,6 +245,7 @@ public class MeshData
     }
     public void CreateMeshData(SquareData square,MazeWallsSettings wallSettings)
     {
+        centre = square.location;
         vertIndex = 0;
         triangleIndex= 0;
         this.sides = square.sides;
@@ -229,10 +256,13 @@ public class MeshData
         this.region = square.region;
         items = new ItemLocation[cubeWidth,height,cubeWidth];
 
-        newCorners[0] = square.corners[0];
-        newCorners[1] = square.corners[1];
-        newCorners[2] = square.corners[2];
-        newCorners[3] = square.corners[3];
+
+        for(int i = 0; i < square.corners.Length; i++)
+        {
+            newCorners[i] = square.corners[i];
+            cubeCorners[i] = square.corners[i];
+        }
+
         if (square.isBoss)
         {
             Debug.Log("Add Boss Statue");
@@ -245,7 +275,6 @@ public class MeshData
         AddVertices();
         AddUvs();
         CreateWalls();
-        //CreateFloor();
     }
 
     public void InitializeArays()
@@ -266,15 +295,14 @@ public class MeshData
         count = 0;
         for (int i = 0; i < sides.Length; i++)
         {
-            count += 18;
-            //if (sides[i])
-            //{
-            //    count+=6;
-            //}
-            //if (pillars[i])
-            //{
-            //    count += 12;
-            //}
+            if (sides[i])
+            {
+                count += 6;
+            }
+            if (pillars[i])
+            {
+                count += 12;
+            }
         }
         triangles = new int[count];
     }
@@ -322,6 +350,11 @@ public class MeshData
     }
     public void CreateMesh(GameObject parent)
     {
+        Debug.Log("Create Mesh");
+        if(squareObject == null) { 
+            squareObject = new GameObject();
+            squareObject.transform.parent = parent.transform;
+        }
         //string str = "triangles...";
         //for (int i = 0; i < triangles.Length; i++)
         //{
@@ -336,21 +369,27 @@ public class MeshData
         //Debug.Log(str
         if (triangles.Length > 0)
         {
-            squareObject = new GameObject("Mesh", typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider));
-            squareObject.transform.parent = parent.transform;
+            walls = new GameObject("Walls", typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider));
+            walls.transform.parent = squareObject.transform;
             mesh = new Mesh();
             mesh.Clear();
             mesh.vertices = vertices;
             mesh.uv = uvs;
             mesh.triangles = triangles;
             mesh.RecalculateNormals();
-            squareObject.GetComponent<MeshFilter>().mesh = mesh;
-            squareObject.GetComponent<MeshCollider>().sharedMesh = mesh;
+            walls.GetComponent<MeshFilter>().mesh = mesh;
+            walls.GetComponent<MeshCollider>().sharedMesh = mesh;
         }
+        if(!hasFloor)
+        {
+            CreateFloor();
+        }
+        hasmesh = true;
+        
     }
     public bool HasMesh()
     {
-        return (squareObject != null);
+        return (hasmesh);
     }
     public void RenderMesh(bool b)
     {
@@ -369,7 +408,8 @@ public class MeshData
             mat = textureSettings.defaultmaterial;
         }
 
-        squareObject.GetComponent<MeshRenderer>().material = mat;
+        walls.GetComponent<MeshRenderer>().material = mat;
+        floor.GetComponent<MeshRenderer>().material = mat;
     }
     public void UpdateMesh()
     {
@@ -379,9 +419,9 @@ public class MeshData
         mesh.uv = uvs;
         mesh.triangles = triangles;
         mesh.RecalculateNormals();
-        squareObject.GetComponent<MeshFilter>().mesh = mesh;
-        squareObject.GetComponent<MeshCollider>().sharedMesh = mesh;
-        squareObject.GetComponent<MeshRenderer>().material = mat;
+        walls.GetComponent<MeshFilter>().mesh = mesh;
+        walls.GetComponent<MeshCollider>().sharedMesh = mesh;
+        walls.GetComponent<MeshRenderer>().material = mat;
 
     }
     struct ItemLocation

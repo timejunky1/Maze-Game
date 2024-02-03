@@ -96,7 +96,7 @@ public class SquareData
         else if (hasMesh && hasChanged)
         {
             Debug.Log("update mesh");
-            meshData.UpdateMesh();
+            meshData.CreateMesh(parent);
             meshData.LoadTextures(textureSettings);
             meshData.RenderMesh(true);
             hasChanged = false;
