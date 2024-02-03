@@ -269,6 +269,8 @@ public class MeshData
             AddAddition("BossStatue", new Vector3(0,0,0), new Quaternion(0, 0, 0, 0));
         }
 
+        CreateChain(new Vector3(1, 1, 1), new Vector3(10, 10, 10));
+
 
         InitializeArays();
         GetNewValues();
@@ -334,9 +336,16 @@ public class MeshData
                                 items[x, y, z].o.SetActive(true);
                                 continue;
                             }
-                            //GameObject prefab = Resources.Load<GameObject>($"{mainFile}{items[i].name}");
-                            items[x, y, z].o = UnityEngine.Object.Instantiate(textureSettings.bossStatue, items[x, y, z].position, items[x, y, z].rotation, squareObject.transform);
+                            else if(items[x, y, z].name == "BossStatue")
+                            {
+                                items[x, y, z].o = UnityEngine.Object.Instantiate(textureSettings.bossStatue, items[x, y, z].position, items[x, y, z].rotation, squareObject.transform);
+                            }
+                            else if (items[x, y, z].name == "Chain")
+                            {
+                                items[x, y, z].o = UnityEngine.Object.Instantiate(textureSettings.chain, items[x, y, z].position, items[x, y, z].rotation, squareObject.transform);
+                            }
                             items[x, y, z].o.SetActive(true);
+                            //GameObject prefab = Resources.Load<GameObject>($"{mainFile}{items[i].name}");
                         }
                     }
                 }
@@ -348,6 +357,34 @@ public class MeshData
     {
 
     }
+
+    public void CreateChain(Vector3 pointA, Vector3 pointB)
+    {
+        int xstart = (int)Math.Min(pointA.x, pointB.x);
+        int ystart = (int)Math.Min(pointA.y, pointB.y);
+        int zstart = (int)Math.Min(pointA.z, pointB.z);
+        int lengthx = (int)Math.Abs(pointA.y - pointB.y);
+        int lengthy = (int)Math.Abs(pointA.y - pointB.y);
+        int lengthz = (int)Math.Abs(pointA.y - pointB.y);
+        Vector3Int point = new Vector3Int(xstart, ystart, zstart);
+        AddAddition("Chain", point, Quaternion.identity);
+        for (int x = xstart; x < lengthx; x++)
+        {
+            point += new Vector3Int(1, 0, 0);
+            AddAddition("Chain", point, Quaternion.identity);
+        }
+        for (int y = xstart; y < lengthx; y++)
+        {
+            point += new Vector3Int(0, 1, 0);
+            AddAddition("Chain", point, Quaternion.identity);
+        }
+        for (int z = xstart; z < lengthx; z++)
+        {
+            point += new Vector3Int(0, 0, 1);
+            AddAddition("Chain", point, Quaternion.identity);
+        }
+    }
+
     public void CreateMesh(GameObject parent)
     {
         Debug.Log("Create Mesh");

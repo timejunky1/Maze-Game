@@ -14,4 +14,6 @@ public class EditorCubeSettings: UpdatableData
     public bool Bot;
     public bool Left;
     public bool IsBoss;
+    public Vector3Int pointA;
+    public Vector3Int pointB;
 }

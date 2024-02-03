@@ -54,7 +54,6 @@ public class RenderingHandler : MonoBehaviour
                 }
             }
             Mazegeneration.matrix[point.x, point.y].RenderMesh(textureSettings, parent);
-            Mazegeneration.matrix[point.x, point.y].RenderAdditions(textureSettings);
         }
     }
 

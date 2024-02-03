@@ -5,6 +5,7 @@ using UnityEngine;
 [CreateAssetMenu()]
 public class TextureSettings : UpdatableData
 {
+    public GameObject chain;
     public GameObject bossStatue;
     public Material defaultmaterial;
     public Region[] regions;

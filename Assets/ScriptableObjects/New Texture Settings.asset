@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: New Texture Settings
   m_EditorClassIdentifier: 
   autoUpdate: 1
+  chain: {fileID: 7414838191518898090, guid: 5ff031da87e5062409afd8afd2a912c5, type: 3}
   bossStatue: {fileID: 5131778937183454807, guid: 0a3ba358d81b17f4aabfe2095617fdd5, type: 3}
   defaultmaterial: {fileID: 2100000, guid: 11c726ddd2dd7f74cbb39bd3d243fd71, type: 2}
   regions:
