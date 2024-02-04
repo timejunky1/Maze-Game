@@ -12,7 +12,7 @@ public class SquareData
     public int regionIndex;
     public bool canSpawn;
     public int regionValue = 0;
-    public Vector3 location;
+    public Vector3Int location;
     public bool visited;
     public bool[] sides;
     public bool[] pillars;
@@ -26,7 +26,7 @@ public class SquareData
     public Color color;
     int meshCount = 0;
 
-    public SquareData(int cubeSize, Vector3 location)
+    public SquareData(int cubeSize, Vector3Int location)
     {
         isLocked = false;
         isRendered = false;
@@ -108,7 +108,6 @@ public class SquareData
             meshData.RenderMesh(true);
         }
         isRendered= true;
-        //EndRender();
     }
     public void HideMesh()
     {

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -138,7 +139,7 @@ public class ShowEditorsmaze : MonoBehaviour
 
     void LoadCubeTextures()
     {
-        square.RenderMesh(textureSettings, CubeParent);
+        square.RenderMesh(textureSettings, MazeParent);
     }
     void RenderMaze()
     {
@@ -151,7 +152,7 @@ public class ShowEditorsmaze : MonoBehaviour
     void RenderCube(TextureSettings textureSettings)//destroy the initial cube
     {
         Debug.Log("RenderCube");
-        square = new SquareData(cubeSettings.cubeSize, new Vector3(0,0,0));
+        square = new SquareData(cubeSettings.cubeSize, new Vector3Int(0,0,0));
         square.region = textureSettings.regionNames[cubeSettings.region];
         square.regionValue = cubeSettings.regionValue;
         for (int i = 0; i < square.pillars.Length; i++)
@@ -185,7 +186,7 @@ public class ShowEditorsmaze : MonoBehaviour
         }
         square.isBoss = cubeSettings.IsBoss;
         square.GetMeshData(wallsSettings);
-        square.RenderMesh(textureSettings, CubeParent);
+        square.RenderMesh(textureSettings, MazeParent);
         square.RenderAdditions(textureSettings);
     }
     void LoadMaze()

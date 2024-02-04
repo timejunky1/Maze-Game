@@ -3,12 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
+using Unity.Jobs;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering;
 
 public class ShowMaze: MonoBehaviour
 {
+    public GameObject mazeParent;
     public MazeWallsSettings wallsSettings;
     public MazeSettings mazeSettings;
     public TextureSettings textureSettings;
@@ -23,6 +25,7 @@ public class ShowMaze: MonoBehaviour
     List<Vector2Int> places = new List<Vector2Int>();
     List<Vector3Int> renderedPlaces = new List<Vector3Int>();
     Mazegeneration maze;
+    RenderingHandler renderingHandler;
     // Start is called before the first frame update
     void Start()
     {
@@ -32,10 +35,12 @@ public class ShowMaze: MonoBehaviour
             GameObject.Find("EditorsCube").SetActive(false);
         }
         catch { }
+        renderingHandler = new RenderingHandler(mazeParent, textureSettings);
         maze = new Mazegeneration(mazeSettings, wallsSettings, textureSettings);
         textureSettings.ReloadDicts();
         maze.SetLockedSquares();
         maze.LoadMaze();
+        maze.AddLockedSquare(new Vector2Int(10, 10));
         LoadMaze();
         viewerPosition = new Vector2(viewer.position.x, viewer.position.z);
         ProcessRendering(new Vector2Int(Mathf.FloorToInt((viewerPosition.x / mazeSettings.cubeSize) + (mazeSettings.mazeSize / 2)), Mathf.FloorToInt((viewerPosition.y / mazeSettings.cubeSize) + (mazeSettings.mazeSize / 2))));
@@ -45,6 +50,8 @@ public class ShowMaze: MonoBehaviour
     private void Update()
     {
         viewerPosition = new Vector2(viewer.position.x, viewer.position.z);
+        renderingHandler.RenderCubes();
+        renderingHandler.DerenderCubes();
         if (viewerPosition != viewerPositionOld)
         {
             if ((viewerPositionOld - viewerPosition).sqrMagnitude >= sqrviewerMoveThresholdForUpdate*mazeSettings.cubeSize)
@@ -58,14 +65,14 @@ public class ShowMaze: MonoBehaviour
     void ProcessRendering(Vector2Int pos)
     {
         renderedPlaces = maze.LoadRegion(pos.x, pos.y, renderDistance, true);
-        RenderingHandler.Render(renderedPlaces);
+        renderingHandler.AddRender(renderedPlaces);
     }
+
     void LoadMaze()
     {
         maze.GenerateMaze();
         placesOfIntrest = maze.placesOfIntrest;
         places = maze.visitedSquares;
-        Debug.Log(places.Count);
         int oldPointY = -1;
         int oldPointX = -1;
         foreach (Vector3Int point in places)

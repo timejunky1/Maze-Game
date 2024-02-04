@@ -17,12 +17,12 @@ MonoBehaviour:
   createOuterWall: 0
   createEntrance: 0
   mazeSize: 50
-  cubeSize: 10
+  cubeSize: 30
   backTrackDst: 0
   maxPathLength: 30
   bossDst: 0
   amountOfBosses: 10
-  baseSize: 3
+  baseSize: 5
   regionSpread: 10
   bossChance: 10
   showVertacies: 10

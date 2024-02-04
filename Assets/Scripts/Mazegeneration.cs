@@ -40,9 +40,9 @@ public class Mazegeneration
                     Debug.Log("Locked");
                     continue;
                 }
-                Vector3 location = new Vector3((x + 1) * maze.cubeSize - (maze.mazeSize * maze.cubeSize / 2) - maze.cubeSize / 2, 0, (y + 1) * maze.cubeSize - (maze.mazeSize * maze.cubeSize / 2) - maze.cubeSize / 2);
+                Vector3Int location = new Vector3Int((x + 1) * maze.cubeSize - (maze.mazeSize * maze.cubeSize / 2) - maze.cubeSize / 2, 0, (y + 1) * maze.cubeSize - (maze.mazeSize * maze.cubeSize / 2) - maze.cubeSize / 2);
                 SquareData square = new SquareData(maze.cubeSize, location);
-                matrix[x, y] = new SquareData(maze.cubeSize, location);
+                matrix[x, y] = square;
             }
         }
     }
@@ -246,7 +246,7 @@ public class Mazegeneration
         {
             int posX = Mathf.CeilToInt(maze.mazeSize / 2);
             int posY = i;
-            Vector3 location = new Vector3((posX + 1) * maze.cubeSize - (maze.mazeSize * maze.cubeSize / 2) - maze.cubeSize / 2, 0, (posY + 1) * maze.cubeSize - (maze.mazeSize * maze.cubeSize / 2) - maze.cubeSize / 2);
+            Vector3Int location = new Vector3Int((posX + 1) * maze.cubeSize - (maze.mazeSize * maze.cubeSize / 2) - maze.cubeSize / 2, 0, (posY + 1) * maze.cubeSize - (maze.mazeSize * maze.cubeSize / 2) - maze.cubeSize / 2);
             SquareData square = new SquareData(maze.cubeSize, location);
             matrix[posX, posY].canSpawn = false;
             matrix[posX, posY].visited = true;
@@ -264,7 +264,7 @@ public class Mazegeneration
                 
                 int xIndex = xPos - Mathf.FloorToInt(maze.baseSize / 2) + x;
                 int yIndex = yPos - Mathf.FloorToInt(maze.baseSize / 2) + y;
-                Vector3 location = new Vector3((xIndex + 1) * maze.cubeSize - (maze.mazeSize * maze.cubeSize / 2) - maze.cubeSize / 2, 0, (yIndex + 1) * maze.cubeSize - (maze.mazeSize * maze.cubeSize / 2) - maze.cubeSize / 2);
+                Vector3Int location = new Vector3Int((xIndex + 1) * maze.cubeSize - (maze.mazeSize * maze.cubeSize / 2) - maze.cubeSize / 2, 0, (yIndex + 1) * maze.cubeSize - (maze.mazeSize * maze.cubeSize / 2) - maze.cubeSize / 2);
                 SquareData square = new SquareData(maze.cubeSize, location);
                 if (x == 0) { square.sides[3] = true; } else { square.sides[3] = false; }
                 if (x == maze.baseSize - 1) { square.sides[1] = true; } else { square.sides[1] = false; }
@@ -272,6 +272,7 @@ public class Mazegeneration
                 if (y == maze.baseSize - 1) { square.sides[0] = true; } else { square.sides[0] = false; }
                 square.canSpawn = false;
                 square.isLocked = true;
+                square.region = "Maze";
                 matrix[xIndex,yIndex] = square;
                 baseSquares.Add(new Vector2Int(xIndex, yIndex));
             }

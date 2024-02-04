@@ -221,8 +221,6 @@ GameObject:
   m_Component:
   - component: {fileID: 270733030}
   - component: {fileID: 270733032}
-  - component: {fileID: 270733031}
-  - component: {fileID: 270733033}
   m_Layer: 0
   m_Name: Maze
   m_TagString: Untagged
@@ -245,24 +243,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &270733031
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 270733029}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 77a1fac81ea0d2e4d946042bda226262, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  cubeSettings: {fileID: 11400000, guid: d399fa41405c6614b92f38b0476a1e13, type: 2}
-  wallsSettings: {fileID: 11400000, guid: 68a6303a60e0613469514b3a7dd0d6ad, type: 2}
-  mazeSettings: {fileID: 11400000, guid: 1ca03a040f1d2044fa7d0ae1d4498e06, type: 2}
-  textureSettings: {fileID: 11400000, guid: 6243cae87eb252c469dceedfbc5a3381, type: 2}
-  CubeParent: {fileID: 1713831850}
-  MazeParent: {fileID: 1434876186}
 --- !u!114 &270733032
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -275,28 +255,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17f5e1d6cc1673e428b3f0f214e6114f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mazeParent: {fileID: 270733029}
   wallsSettings: {fileID: 11400000, guid: 68a6303a60e0613469514b3a7dd0d6ad, type: 2}
-  mazeSettings: {fileID: 11400000, guid: 1ca03a040f1d2044fa7d0ae1d4498e06, type: 2}
+  mazeSettings: {fileID: 11400000, guid: d0d0037c22f0089438862841b7ada972, type: 2}
   textureSettings: {fileID: 11400000, guid: 6243cae87eb252c469dceedfbc5a3381, type: 2}
   viewer: {fileID: 101157049}
   renderDistance: 10
-  sqrviewerMoveThresholdForUpdate: 2
---- !u!114 &270733033
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 270733029}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b95e4a1a9340a274486383a15599382d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  textureSettings: {fileID: 11400000, guid: 6243cae87eb252c469dceedfbc5a3381, type: 2}
-  parent: {fileID: 270733029}
-  useQueue: 1
-  setRerender: 0
+  sqrviewerMoveThresholdForUpdate: 1
 --- !u!4 &286131032 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8338988566280778637, guid: 64dce48905ffd9b4293e595fa6941544, type: 3}
@@ -937,7 +902,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1713831851
 Transform:
   m_ObjectHideFlags: 0
