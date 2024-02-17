@@ -230,8 +230,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 974238578668270715, guid: c708a3b79cd542b42bbfedb17e213bc1, type: 3}
       propertyPath: AttackType
-      value: Mele2
+      value: Counter
       objectReference: {fileID: 0}
+    - target: {fileID: 974238578668270715, guid: c708a3b79cd542b42bbfedb17e213bc1, type: 3}
+      propertyPath: CounterTarget
+      value: 
+      objectReference: {fileID: 4161524400211847321, guid: e8ad96ee18efd3e48a875362fd2ea55b, type: 3}
     - target: {fileID: 974238578668270715, guid: c708a3b79cd542b42bbfedb17e213bc1, type: 3}
       propertyPath: RecoverAtCharge
       value: 2

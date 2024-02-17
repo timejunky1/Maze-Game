@@ -21,6 +21,7 @@ namespace StarterAssets
         [Tooltip("The slash object that will calculate hit or not")]
         public GameObject Slash;
         public GameObject Spell;
+        public GameObject CounterTarget;
         public float MaxCharge;
         public float DoubleAttackMinCharge;
         public float RecoverAtCharge;
@@ -93,7 +94,8 @@ namespace StarterAssets
 
         //Actions
         private GameObject _slash;
-        private GameObject _spell;
+        private GameObject _spell1;
+        private GameObject _spell2;
         private bool _hasSlash1;
         private bool _hasSlash2;
         private bool _hasSpell1;
@@ -254,8 +256,122 @@ namespace StarterAssets
                 case "Spell2":
                     SpellAttack2();
                     break;
+                case "Counter":
+                    CounterAttack(); 
+                    break;
+                case "Counter2":
+                    CounterAttack2();
+                    break;
                 default:
                     break;
+            }
+        }
+        private void CounterAttack2()
+        {
+            Debug.Log(_actionChargeTimer1 + ", " + _actionChargeTimer2);
+            if (Input.GetKey(KeyCode.Mouse0) && Input.GetKey(KeyCode.Mouse1) && _actionChargeTimer1 < MaxCharge && _recovered1)
+            {
+                //do something
+                _actionChargeTimer1 += Time.deltaTime;
+                if (!_hasSpell1)
+                {
+                    _spell1 = UnityEngine.GameObject.Instantiate(CounterTarget, new Vector3(_locationInfo.x, _locationInfo.y + 2, _locationInfo.z), this.transform.localRotation);
+                    _hasSpell1 = true;
+                }
+                else
+                {
+                    _spell1.transform.localScale *= 1 + (Time.deltaTime / 4);
+                }
+            }
+            else if (_hasSpell1)
+            {
+                Destroy(_spell1);
+                _hasSpell1 = false;
+                _recovered1 = false;
+            }
+            else if (_actionChargeTimer1 > 0)
+            {
+                _actionChargeTimer1 -= Time.deltaTime;
+            }
+            if (_actionChargeTimer1 < RecoverAtCharge && _recovered1 == false)
+            {
+                //_slash.SetActive(false);
+                _recovered1 = true;
+            }
+            if (_actionChargeTimer1 < 0)
+            {
+                _actionChargeTimer1 = 0;
+            }
+        }
+        private void CounterAttack()
+        {
+            Debug.Log(_actionChargeTimer1 + ", " + _actionChargeTimer2);
+            if (Input.GetKey(KeyCode.Mouse0) && _actionChargeTimer1 < MaxCharge && _recovered1)
+            {
+                //do something
+                _actionChargeTimer1 += Time.deltaTime;
+                if (!_hasSpell1)
+                {
+                    _spell1 = UnityEngine.GameObject.Instantiate(CounterTarget, new Vector3(_locationInfo.x + 1, _locationInfo.y + 2, _locationInfo.z), this.transform.localRotation);
+                    _hasSpell1 = true;
+                }
+                else
+                {
+                    _spell1.transform.localScale *= 1 + (Time.deltaTime/4);
+                }
+            }
+            else if (_hasSpell1)
+            {
+                Destroy(_spell1);
+                _hasSpell1 = false;
+                _recovered1 = false;
+            }
+            else if (_actionChargeTimer1 > 0)
+            {
+                _actionChargeTimer1 -= Time.deltaTime;
+            }
+            if (_actionChargeTimer1 < RecoverAtCharge && _recovered1 == false)
+            {
+                //_slash.SetActive(false);
+                _recovered1 = true;
+            }
+            if (_actionChargeTimer1 < 0)
+            {
+                _actionChargeTimer1 = 0;
+            }
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            if (Input.GetKey(KeyCode.Mouse1) && _actionChargeTimer2 < MaxCharge && _recovered2)
+            {
+                //do something
+                _actionChargeTimer2 += Time.deltaTime;
+                if (!_hasSpell2)
+                {
+                    _spell2 = UnityEngine.GameObject.Instantiate(CounterTarget, new Vector3(_locationInfo.x - 1, _locationInfo.y + 2, _locationInfo.z), this.transform.localRotation);
+                    _hasSpell2 = true;
+                }
+                else
+                {
+                    _spell2.transform.localScale *= 1 + (Time.deltaTime / 4);
+                }
+            }
+            else if (_hasSpell2)
+            {
+                Destroy(_spell2);
+                _hasSpell2 = false;
+                _recovered2 = false;
+            }
+            else if (_actionChargeTimer2 > 0)
+            {
+                _actionChargeTimer2 -= Time.deltaTime;
+            }
+            if (_actionChargeTimer2 < RecoverAtCharge && _recovered2 == false)
+            {
+                //_slash.SetActive(false);
+                _recovered2 = true;
+            }
+            if (_actionChargeTimer2 < 0)
+            {
+                _actionChargeTimer2 = 0;
             }
         }
         private void MeleAttack2()
@@ -330,11 +446,11 @@ namespace StarterAssets
                     _hasSpell1 = true;
                 }
             }
-            else if (_hasSpell1 && (!Input.GetKey(KeyCode.Mouse0)||!Input.GetKey(KeyCode.Mouse1)))
+            else if (_hasSpell1)
             {
-                _spell = UnityEngine.GameObject.Instantiate(Spell, new Vector3(_locationInfo.x, _locationInfo.y + 2, _locationInfo.z), this.transform.localRotation);
+                _spell1 = UnityEngine.GameObject.Instantiate(Spell, new Vector3(_locationInfo.x, _locationInfo.y + 2, _locationInfo.z), this.transform.localRotation);
                 Vector3 direction = new Vector3(0, 0, _actionChargeTimer1 * 1000);
-                _spell.GetComponent<Rigidbody>().AddForce(direction);
+                _spell1.GetComponent<Rigidbody>().AddForce(direction);
                 _hasSpell1 = false;
                 _recovered1 = false;
             }
@@ -364,11 +480,11 @@ namespace StarterAssets
                     _hasSpell1 = true;
                 } 
             }
-            else if (_hasSpell1 && !Input.GetKey(KeyCode.Mouse0))
+            else if (_hasSpell1)
             {
-                _spell = UnityEngine.GameObject.Instantiate(Spell, new Vector3(_locationInfo.x + 1, _locationInfo.y + 2, _locationInfo.z), this.transform.localRotation);
+                _spell1 = UnityEngine.GameObject.Instantiate(Spell, new Vector3(_locationInfo.x + 1, _locationInfo.y + 2, _locationInfo.z), this.transform.localRotation);
                 Vector3 direction = new Vector3(0, 0, _actionChargeTimer1 * 1000);
-                _spell.GetComponent<Rigidbody>().AddForce(direction);
+                _spell1.GetComponent<Rigidbody>().AddForce(direction);
                 _hasSpell1 = false;
                 _recovered1 = false;
             }
@@ -395,11 +511,11 @@ namespace StarterAssets
                     _hasSpell2 = true;
                 }
             }
-            else if (_hasSpell2 && !Input.GetKey(KeyCode.Mouse1))
+            else if (_hasSpell2)
             {
-                _spell = UnityEngine.GameObject.Instantiate(Spell, new Vector3(_locationInfo.x -1, _locationInfo.y + 2, _locationInfo.z), this.transform.localRotation);
+                _spell2 = UnityEngine.GameObject.Instantiate(Spell, new Vector3(_locationInfo.x -1, _locationInfo.y + 2, _locationInfo.z), this.transform.localRotation);
                 Vector3 direction = new Vector3(0, 0, _actionChargeTimer2 * 1000);
-                _spell.GetComponent<Rigidbody>().AddForce(direction);
+                _spell2.GetComponent<Rigidbody>().AddForce(direction);
                 _hasSpell2 = false;
                 _recovered2 = false;
             }
