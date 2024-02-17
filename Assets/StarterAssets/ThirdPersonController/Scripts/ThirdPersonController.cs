@@ -1,5 +1,6 @@
 ﻿using Unity.VisualScripting;
 using UnityEditor;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 #if ENABLE_INPUT_SYSTEM 
 using UnityEngine.InputSystem;
@@ -19,8 +20,11 @@ namespace StarterAssets
         [Header("Actions")]
         [Tooltip("The slash object that will calculate hit or not")]
         public GameObject Slash;
+        public GameObject Spell;
         public float MaxCharge;
+        public float DoubleAttackMinCharge;
         public float RecoverAtCharge;
+        public string AttackType;
 
         [Header("Player")]
         [Tooltip("Move speed of the character in m/s")]
@@ -89,9 +93,15 @@ namespace StarterAssets
 
         //Actions
         private GameObject _slash;
-        private bool _hasSlash;
-        private float actionChargeTimer;
-        private bool _recovered = true;
+        private GameObject _spell;
+        private bool _hasSlash1;
+        private bool _hasSlash2;
+        private bool _hasSpell1;
+        private bool _hasSpell2;
+        private float _actionChargeTimer1;
+        private float _actionChargeTimer2;
+        private bool _recovered1 = true;
+        private bool _recovered2 = true;
         Vector3 rotation = Vector3.zero;
 
         // player
@@ -230,52 +240,231 @@ namespace StarterAssets
         }
         private void Attack()
         {
-            Debug.Log(actionChargeTimer);
+            switch (AttackType)
+            {
+                case "Mele":
+                    MeleAttack();
+                    break;
+                case "Mele2":
+                    MeleAttack2();
+                    break;
+                case "Spell":
+                    SpellAttack();
+                    break;
+                case "Spell2":
+                    SpellAttack2();
+                    break;
+                default:
+                    break;
+            }
+        }
+        private void MeleAttack2()
+        {
+            Debug.Log(_actionChargeTimer1);
             Vector3 oldRotation = rotation;
-            if((Input.GetKey(KeyCode.Mouse0) || Input.GetKey(KeyCode.Mouse1) ) && actionChargeTimer<MaxCharge && _recovered)
+            if ((Input.GetKey(KeyCode.Mouse0) || Input.GetKey(KeyCode.Mouse1)) && _actionChargeTimer1 < MaxCharge && _recovered1)
+            {
+                rotation = AtackRotation();
+                if (rotation != oldRotation)
+                {
+                    _actionChargeTimer1 = 2;
+                }
+                _actionChargeTimer1 += Time.deltaTime;
+                if (!_hasSlash1)
+                {
+                    _hasSlash1 = true;
+                }
+                if (_actionChargeTimer1 > DoubleAttackMinCharge)
+                {
+                    _hasSlash2 = true;
+                }
+                else
+                {
+                    _hasSlash2 = false;
+                }
+            }
+            else if (_hasSlash1)
+            {
+                if (_hasSlash1 && !_hasSlash2)
+                {
+                    _slash = UnityEngine.GameObject.Instantiate(Slash, new Vector3(_locationInfo.x, _locationInfo.y + 1, _locationInfo.z), this.transform.localRotation);
+                    _slash.transform.Rotate(rotation);
+                    _hasSlash1 = false;
+                    _hasSlash2 = false;
+                    _recovered1 = false;
+                }else if (_hasSlash2)
+                {
+                    _slash = UnityEngine.GameObject.Instantiate(Slash, new Vector3(_locationInfo.x, _locationInfo.y + 1.2f, _locationInfo.z), this.transform.localRotation);
+                    _slash.transform.Rotate(rotation);
+                    _slash = UnityEngine.GameObject.Instantiate(Slash, new Vector3(_locationInfo.x, _locationInfo.y + 0.8f, _locationInfo.z), this.transform.localRotation);
+                    _slash.transform.Rotate(rotation);
+                    _hasSlash1 = false;
+                    _hasSlash2 = false;
+                    _recovered1 = false;
+                }
+            }
+            else if (_actionChargeTimer1 > 0)
+            {
+                _actionChargeTimer1 -= Time.deltaTime;
+            }
+
+            if (_actionChargeTimer1 < RecoverAtCharge && _recovered1 == false)
+            {
+                //_slash.SetActive(false);
+                _recovered1 = true;
+            }
+            if (_actionChargeTimer1 < 0)
+            {
+                _actionChargeTimer1 = 0;
+            }
+        }
+        private void SpellAttack2()
+        {
+            Debug.Log(_actionChargeTimer1 + ", " + _actionChargeTimer2);
+            if (Input.GetKey(KeyCode.Mouse0) && Input.GetKey(KeyCode.Mouse1) && _actionChargeTimer1 < MaxCharge && _recovered1)
+            {
+                //do something
+                _actionChargeTimer1 += Time.deltaTime;
+                if (!_hasSpell1)
+                {
+                    _hasSpell1 = true;
+                }
+            }
+            else if (_hasSpell1 && (!Input.GetKey(KeyCode.Mouse0)||!Input.GetKey(KeyCode.Mouse1)))
+            {
+                _spell = UnityEngine.GameObject.Instantiate(Spell, new Vector3(_locationInfo.x, _locationInfo.y + 2, _locationInfo.z), this.transform.localRotation);
+                Vector3 direction = new Vector3(0, 0, _actionChargeTimer1 * 1000);
+                _spell.GetComponent<Rigidbody>().AddForce(direction);
+                _hasSpell1 = false;
+                _recovered1 = false;
+            }
+            else if (_actionChargeTimer1 > 0)
+            {
+                _actionChargeTimer1 -= Time.deltaTime;
+            }
+            if (_actionChargeTimer1 < RecoverAtCharge && _recovered1 == false)
+            {
+                //_slash.SetActive(false);
+                _recovered1 = true;
+            }
+            if (_actionChargeTimer1 < 0)
+            {
+                _actionChargeTimer1 = 0;
+            }
+        }
+        private void SpellAttack()
+        {
+            Debug.Log(_actionChargeTimer1 + ", " + _actionChargeTimer2);
+            if (Input.GetKey(KeyCode.Mouse0) && _actionChargeTimer1 < MaxCharge && _recovered1)
+            {
+                //do something
+                _actionChargeTimer1 += Time.deltaTime;
+                if (!_hasSpell1)
+                {
+                    _hasSpell1 = true;
+                } 
+            }
+            else if (_hasSpell1 && !Input.GetKey(KeyCode.Mouse0))
+            {
+                _spell = UnityEngine.GameObject.Instantiate(Spell, new Vector3(_locationInfo.x + 1, _locationInfo.y + 2, _locationInfo.z), this.transform.localRotation);
+                Vector3 direction = new Vector3(0, 0, _actionChargeTimer1 * 1000);
+                _spell.GetComponent<Rigidbody>().AddForce(direction);
+                _hasSpell1 = false;
+                _recovered1 = false;
+            }
+            else if (_actionChargeTimer1 > 0)
+            {
+                _actionChargeTimer1 -= Time.deltaTime;
+            }
+            if (_actionChargeTimer1 < RecoverAtCharge && _recovered1 == false)
+            {
+                //_slash.SetActive(false);
+                _recovered1 = true;
+            }
+            if (_actionChargeTimer1 < 0)
+            {
+                _actionChargeTimer1 = 0;
+            }
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            if (Input.GetKey(KeyCode.Mouse1) && _actionChargeTimer2 < MaxCharge && _recovered2)
+            {
+                //do something
+                _actionChargeTimer2 += Time.deltaTime;
+                if (!_hasSpell2)
+                {
+                    _hasSpell2 = true;
+                }
+            }
+            else if (_hasSpell2 && !Input.GetKey(KeyCode.Mouse1))
+            {
+                _spell = UnityEngine.GameObject.Instantiate(Spell, new Vector3(_locationInfo.x -1, _locationInfo.y + 2, _locationInfo.z), this.transform.localRotation);
+                Vector3 direction = new Vector3(0, 0, _actionChargeTimer2 * 1000);
+                _spell.GetComponent<Rigidbody>().AddForce(direction);
+                _hasSpell2 = false;
+                _recovered2 = false;
+            }
+            else if (_actionChargeTimer2 > 0)
+            {
+                _actionChargeTimer2 -= Time.deltaTime;
+            }
+            if (_actionChargeTimer2 < RecoverAtCharge && _recovered2 == false)
+            {
+                //_slash.SetActive(false);
+                _recovered2 = true;
+            }
+            if (_actionChargeTimer2 < 0)
+            {
+                _actionChargeTimer2 = 0;
+            }
+        }
+        private void MeleAttack()
+        {
+            Debug.Log(_actionChargeTimer1);
+            Vector3 oldRotation = rotation;
+            if((Input.GetKey(KeyCode.Mouse0) || Input.GetKey(KeyCode.Mouse1) ) && _actionChargeTimer1<MaxCharge && _recovered1)
             {
                 rotation = AtackRotation();
                 if(rotation != oldRotation)
                 {
-                    actionChargeTimer = 2;
+                    _actionChargeTimer1 = 2;
                 }
-                actionChargeTimer += Time.deltaTime;
-                if (!_hasSlash)
+                _actionChargeTimer1 += Time.deltaTime;
+                if (!_hasSlash1)
                 {
-                    _hasSlash = true;
+                    _hasSlash1 = true;
                 }
             }
-            else if(_hasSlash && (!Input.GetKey(KeyCode.Mouse0) || !Input.GetKey(KeyCode.Mouse1)))
+            else if(_hasSlash1)
             {
                 _slash = UnityEngine.GameObject.Instantiate(Slash, new Vector3(_locationInfo.x, _locationInfo.y + 1, _locationInfo.z), this.transform.localRotation);
                 _slash.transform.Rotate(rotation);
-                _hasSlash = false;
-                _recovered = false;
+                _hasSlash1 = false;
+                _recovered1 = false;
             }
-            else if(actionChargeTimer > 0)
+            else if(_actionChargeTimer1 > 0)
             {
-                actionChargeTimer -= Time.deltaTime;
+                _actionChargeTimer1 -= Time.deltaTime;
             }
 
-            if(actionChargeTimer < RecoverAtCharge && _recovered == false)
+            if(_actionChargeTimer1 < RecoverAtCharge && _recovered1 == false)
             {
                 //_slash.SetActive(false);
-                _recovered = true;
+                _recovered1 = true;
             }
-            if(actionChargeTimer < 0)
+            if(_actionChargeTimer1 < 0)
             {
-                actionChargeTimer = 0;
+                _actionChargeTimer1 = 0;
             }
         }
 
         private Vector3 AtackRotation()
         {
             int side = 0;
-            if(Input.GetKey(KeyCode.Mouse1))
+            if(Input.GetKey(KeyCode.Mouse1) && !Input.GetKey(KeyCode.Mouse0))
             {
                 side = -1;
             }
-            else if (Input.GetKey(KeyCode.Mouse0))
+            else if (Input.GetKey(KeyCode.Mouse0) && !Input.GetKey(KeyCode.Mouse1))
             {
                 side = 1;
             }
