@@ -1,4 +1,6 @@
-﻿ using UnityEngine;
+﻿using Unity.VisualScripting;
+using UnityEditor;
+using UnityEngine;
 #if ENABLE_INPUT_SYSTEM 
 using UnityEngine.InputSystem;
 #endif
@@ -14,6 +16,12 @@ namespace StarterAssets
 #endif
     public class ThirdPersonController : MonoBehaviour
     {
+        [Header("Actions")]
+        [Tooltip("The slash object that will calculate hit or not")]
+        public GameObject Slash;
+        public float MaxCharge;
+        public float RecoverAtCharge;
+
         [Header("Player")]
         [Tooltip("Move speed of the character in m/s")]
         public float MoveSpeed = 2.0f;
@@ -79,7 +87,15 @@ namespace StarterAssets
         private float _cinemachineTargetYaw;
         private float _cinemachineTargetPitch;
 
+        //Actions
+        private GameObject _slash;
+        private bool _hasSlash;
+        private float actionChargeTimer;
+        private bool _recovered = true;
+        Vector3 rotation = Vector3.zero;
+
         // player
+        private Vector3 _locationInfo;
         private float _speed;
         private float _animationBlend;
         private float _targetRotation = 0.0f;
@@ -135,7 +151,7 @@ namespace StarterAssets
         private void Start()
         {
             _cinemachineTargetYaw = CinemachineCameraTarget.transform.rotation.eulerAngles.y;
-            
+
             _hasAnimator = TryGetComponent(out _animator);
             _controller = GetComponent<CharacterController>();
             _input = GetComponent<StarterAssetsInputs>();
@@ -154,11 +170,13 @@ namespace StarterAssets
 
         private void Update()
         {
+            _locationInfo = this.transform.position;
             _hasAnimator = TryGetComponent(out _animator);
 
             JumpAndGravity();
             GroundedCheck();
             Move();
+            Attack();
         }
 
         private void LateUpdate()
@@ -209,6 +227,72 @@ namespace StarterAssets
             // Cinemachine will follow this target
             CinemachineCameraTarget.transform.rotation = Quaternion.Euler(_cinemachineTargetPitch + CameraAngleOverride,
                 _cinemachineTargetYaw, 0.0f);
+        }
+        private void Attack()
+        {
+            Debug.Log(actionChargeTimer);
+            Vector3 oldRotation = rotation;
+            if((Input.GetKey(KeyCode.Mouse0) || Input.GetKey(KeyCode.Mouse1) ) && actionChargeTimer<MaxCharge && _recovered)
+            {
+                rotation = AtackRotation();
+                if(rotation != oldRotation)
+                {
+                    actionChargeTimer = 2;
+                }
+                actionChargeTimer += Time.deltaTime;
+                if (!_hasSlash)
+                {
+                    _hasSlash = true;
+                }
+            }
+            else if(_hasSlash && (!Input.GetKey(KeyCode.Mouse0) || !Input.GetKey(KeyCode.Mouse1)))
+            {
+                _slash = UnityEngine.GameObject.Instantiate(Slash, new Vector3(_locationInfo.x, _locationInfo.y + 1, _locationInfo.z), this.transform.localRotation);
+                _slash.transform.Rotate(rotation);
+                _hasSlash = false;
+                _recovered = false;
+            }
+            else if(actionChargeTimer > 0)
+            {
+                actionChargeTimer -= Time.deltaTime;
+            }
+
+            if(actionChargeTimer < RecoverAtCharge && _recovered == false)
+            {
+                //_slash.SetActive(false);
+                _recovered = true;
+            }
+            if(actionChargeTimer < 0)
+            {
+                actionChargeTimer = 0;
+            }
+        }
+
+        private Vector3 AtackRotation()
+        {
+            int side = 0;
+            if(Input.GetKey(KeyCode.Mouse1))
+            {
+                side = -1;
+            }
+            else if (Input.GetKey(KeyCode.Mouse0))
+            {
+                side = 1;
+            }
+
+
+            if (Input.GetKey(KeyCode.LeftShift))
+            {
+                return new Vector3(0, 0, side * 90);
+            }
+            else if (Input.GetKey(KeyCode.W))
+            {
+                return new Vector3(0, 0, side * 135);
+            }
+            else
+            {
+                return new Vector3(0, 0, side * 45);
+            }
         }
 
         private void Move()

@@ -19,7 +19,7 @@ MonoBehaviour:
   regionValue: 1
   Top: 1
   Right: 1
-  Bot: 0
+  Bot: 1
   Left: 1
   IsBoss: 0
   pointA: {x: 0, y: 0, z: 0}

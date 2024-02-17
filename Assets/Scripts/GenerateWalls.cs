@@ -367,6 +367,7 @@ public class MeshData
     public void CreateMesh(GameObject parent)
     {
         Debug.Log("Create Mesh");
+        Debug.Log($"{vertices.Length}");
         if(squareObject == null) { 
             squareObject = new GameObject();
             squareObject.transform.parent = parent.transform;
