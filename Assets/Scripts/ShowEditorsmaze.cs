@@ -1,11 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using UnityEngine;
+using static UnityEditor.VersionControl.Asset;
 
 public class ShowEditorsmaze : MonoBehaviour
 {
@@ -139,7 +139,7 @@ public class ShowEditorsmaze : MonoBehaviour
 
     void LoadCubeTextures()
     {
-        square.RenderMesh(textureSettings, MazeParent);
+        square.RenderMesh(textureSettings, CubeParent);
     }
     void RenderMaze()
     {
@@ -186,7 +186,7 @@ public class ShowEditorsmaze : MonoBehaviour
         }
         square.isBoss = cubeSettings.IsBoss;
         square.GetMeshData(wallsSettings);
-        square.RenderMesh(textureSettings, MazeParent);
+        square.RenderMesh(textureSettings, CubeParent);
         square.RenderAdditions(textureSettings);
     }
     void LoadMaze()
@@ -221,6 +221,45 @@ public class ShowEditorsmaze : MonoBehaviour
                     Gizmos.DrawSphere(new Vector3(point.x, point.y, 0), 2f);
                 }
             }
+        }
+        if(square != null)
+        {
+            int[,,] spaces = square.meshData.spaces;
+            List<Vector3> verts = square.meshData.landscapeVerts;
+            //foreach(int i in square.meshData.landscapeTriangles)
+            //{
+            //    Gizmos.DrawSphere(verts[i], 0.2f);
+            //}
+            foreach (Vector3 v in verts)
+            {
+                Gizmos.DrawSphere(v, 0.2f);
+            }
+            //Vector3 pos = square.meshData.centre;
+            //for (int x = 0; x < spaces.GetLength(0); x++)
+            //{
+            //    for (int y = 0; y < spaces.GetLength(1); y++)
+            //    {
+            //        for (int z = 0; z < spaces.GetLength(2); z++)
+            //        {
+            //            if (spaces[x, y, z] == 1)
+            //            {
+            //                Gizmos.color = Color.gray;
+            //                Gizmos.DrawCube(new Vector3(x - cubeSettings.cubeSize / 2, y, z - cubeSettings.cubeSize / 2), new Vector3(1, 1, 1));
+            //            }
+            //            if (spaces[x, y, z] == 2)
+            //            {
+            //                Gizmos.color = Color.green;
+            //                Gizmos.DrawCube(new Vector3(x - cubeSettings.cubeSize / 2, y, z - cubeSettings.cubeSize / 2), new Vector3(1, 1, 1));
+            //            }
+            //            if (spaces[x, y, z] == 3)
+            //            {
+            //                Gizmos.color = Color.black;
+            //                Gizmos.DrawCube(new Vector3(x - cubeSettings.cubeSize / 2, y, z - cubeSettings.cubeSize / 2), new Vector3(1, 1, 1));
+            //            }
+            //        }
+            //    }
+
+            //}
         }
         
 

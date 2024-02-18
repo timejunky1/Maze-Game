@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: New Editor Cube Settings
   m_EditorClassIdentifier: 
   autoUpdate: 0
-  cubeSize: 100
+  cubeSize: 20
   region: 1
   canSpawn: 0
   regionValue: 1

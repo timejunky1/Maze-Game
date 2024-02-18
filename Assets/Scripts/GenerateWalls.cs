@@ -12,6 +12,11 @@ using UnityEngine.UIElements;
 public class MeshData
 {
     int cubeWidth;
+    Vector3[,,] landscapeVertMatrix;
+    public List<Vector3> landscapeVerts;
+    List<Vector2> landscapeUvs;
+    public List<int> landscapeTriangles;
+    public int[,,] spaces;
     ItemLocation[,,] items;
     public Vector3[] vertices;
     Vector2[] uvs;
@@ -26,7 +31,7 @@ public class MeshData
     bool[] pillars;
     int height;
     int width;
-    Vector3Int centre;
+    public Vector3Int centre;
     int triangleIndex;
     int vertIndex;
 
@@ -35,11 +40,16 @@ public class MeshData
     GameObject squareObject;
     GameObject floor;
     GameObject walls;
+    GameObject landscape;
 
+    bool hasLandscape;
     bool hasFloor;
     bool hasmesh;
     public MeshData()
     {
+        landscapeVerts = new List<Vector3>();
+        landscapeTriangles = new List<int>();
+        landscapeUvs = new List<Vector2>();
         newCorners = new Vector3[4];
         cubeCorners = new Vector3[4];
         cornerIndexes = new int[4];
@@ -142,7 +152,239 @@ public class MeshData
             uvs[i] = vertices[i];
         }
     }
+    void CalculateLandscape()
+    {
+        int count = 0;
+        for (int x = 0; x < spaces.GetLength(0); x++)
+        {
+            //int r = UnityEngine.Random.Range(0, 20);
+            for (int z = 0; z < spaces.GetLength(2); z++)
+            {
+                if((x>cubeWidth-width || x < width || z>cubeWidth-width || z < width))
+                {
+                    Debug.Log("Wall");
+                    continue;
+                }
+                int r = 2;
+                for (int y = 0; y < spaces.GetLength(1); y++)
+                {
+                    if(x>5 && x < 15 && z > 5 && z < 15)
+                    {
+                        r = 6;
+                    }
+                    if (y == r)
+                    {
+                        float xo = (centre.x - cubeWidth / 2) + x;
+                        float zo = (centre.z - cubeWidth / 2) + z;
+                        float yo = centre.y + y;
+                        spaces[x, y, z] = 2;
 
+                        landscapeVerts.Add(new Vector3(xo - 0.5f, yo - 0.5f, zo + 0.5f));
+                        landscapeVerts.Add(new Vector3(xo + 0.5f, yo - 0.5f, zo + 0.5f));
+                        landscapeVerts.Add(new Vector3(xo + 0.5f, yo - 0.5f, zo - 0.5f));
+                        landscapeVerts.Add(new Vector3(xo - 0.5f, yo - 0.5f, zo - 0.5f));
+                        int vIndex = landscapeVerts.Count-1;
+                        landscapeUvs.Add(new Vector3(landscapeVerts[vIndex - 3].x, landscapeVerts[vIndex - 3].y));
+                        landscapeUvs.Add(new Vector3(landscapeVerts[vIndex - 2].x, landscapeVerts[vIndex - 2].y));
+                        landscapeUvs.Add(new Vector3(landscapeVerts[vIndex - 1].x, landscapeVerts[vIndex - 1].y));
+                        landscapeUvs.Add(new Vector3(landscapeVerts[vIndex].x, landscapeVerts[vIndex].y));
+                        int tIndex = ((landscapeVerts.Count/2)*3)-1;
+                        landscapeTriangles.Add(vIndex - 3);
+                        landscapeTriangles.Add(vIndex - 2);
+                        landscapeTriangles.Add(vIndex);
+                        landscapeTriangles.Add(vIndex);
+                        landscapeTriangles.Add(vIndex - 2);
+                        landscapeTriangles.Add(vIndex - 1);
+                    }
+                    if (y < r)
+                    {
+                        spaces[x, y, z] = 1;
+                    }
+                }
+            }
+        }
+        
+        //Z wise sweep
+        int previous = 10;
+        for (int y = 0; y < spaces.GetLength(1); y++)
+        {
+            for (int x = 0; x < spaces.GetLength(0); x++)
+            {
+                for (int z = 0; z < spaces.GetLength(2); z++)
+                {
+                    if ((previous == 0 || previous == 2) && (spaces[x, y, z] == 1 || spaces[x, y, z] == 3))
+                    {
+                        previous = spaces[x, y, z];
+                        spaces[x, y, z] = 3;
+
+                        float xo = (centre.x - cubeWidth / 2) + x;
+                        float zo = (centre.z - cubeWidth / 2) + z;
+                        float yo = centre.y + y;
+                        //spaces[x, y, z] = 2;
+
+                        landscapeVerts.Add(new Vector3(xo - 0.5f, yo + 0.5f, zo - 0.5f));
+                        landscapeVerts.Add(new Vector3(xo + 0.5f, yo + 0.5f, zo - 0.5f));
+                        landscapeVerts.Add(new Vector3(xo + 0.5f, yo - 0.5f, zo - 0.5f));
+                        landscapeVerts.Add(new Vector3(xo - 0.5f, yo - 0.5f, zo - 0.5f));
+                        int vIndex = landscapeVerts.Count - 1;
+                        landscapeUvs.Add(new Vector3(landscapeVerts[vIndex - 3].x, landscapeVerts[vIndex - 3].y));
+                        landscapeUvs.Add(new Vector3(landscapeVerts[vIndex - 2].x, landscapeVerts[vIndex - 2].y));
+                        landscapeUvs.Add(new Vector3(landscapeVerts[vIndex - 1].x, landscapeVerts[vIndex - 1].y));
+                        landscapeUvs.Add(new Vector3(landscapeVerts[vIndex].x, landscapeVerts[vIndex].y));
+                        int tIndex = ((landscapeVerts.Count / 2) * 3) - 1;
+                        landscapeTriangles.Add(vIndex - 3);
+                        landscapeTriangles.Add(vIndex - 2);
+                        landscapeTriangles.Add(vIndex);
+                        landscapeTriangles.Add(vIndex);
+                        landscapeTriangles.Add(vIndex - 2);
+                        landscapeTriangles.Add(vIndex - 1);
+                        continue;
+                    }
+                    previous = spaces[x, y, z];
+                }
+            }
+        }
+        //Z wise sweep backwards
+        for (int y = 0; y < spaces.GetLength(1); y++)
+        {
+            for (int x = spaces.GetLength(0) - 1; x >= 0; x--)
+            {
+                for (int z = spaces.GetLength(2) - 1; z >= 0; z--)
+                {
+                    if ((previous == 0 || previous == 2) && (spaces[x, y, z] == 1 || spaces[x, y, z] == 3))
+                    {
+                        Debug.Log("Rock");
+                        previous = spaces[x, y, z];
+                        spaces[x, y, z] = 3;
+
+                        float xo = (centre.x - cubeWidth / 2) + x;
+                        float zo = (centre.z - cubeWidth / 2) + z;
+                        float yo = centre.y + y;
+                        spaces[x, y, z] = 2;
+
+                        landscapeVerts.Add(new Vector3(xo - 0.5f, yo + 0.5f, zo + 0.5f));
+                        landscapeVerts.Add(new Vector3(xo + 0.5f, yo + 0.5f, zo + 0.5f));
+                        landscapeVerts.Add(new Vector3(xo + 0.5f, yo - 0.5f, zo + 0.5f));
+                        landscapeVerts.Add(new Vector3(xo - 0.5f, yo - 0.5f, zo + 0.5f));
+                        int vIndex = landscapeVerts.Count - 1;
+                        landscapeUvs.Add(new Vector3(landscapeVerts[vIndex - 3].x, landscapeVerts[vIndex - 3].y));
+                        landscapeUvs.Add(new Vector3(landscapeVerts[vIndex - 2].x, landscapeVerts[vIndex - 2].y));
+                        landscapeUvs.Add(new Vector3(landscapeVerts[vIndex - 1].x, landscapeVerts[vIndex - 1].y));
+                        landscapeUvs.Add(new Vector3(landscapeVerts[vIndex].x, landscapeVerts[vIndex].y));
+                        int tIndex = ((landscapeVerts.Count / 2) * 3) - 1;
+                        landscapeTriangles.Add(vIndex);//0
+                        landscapeTriangles.Add(vIndex - 2);//1
+                        landscapeTriangles.Add(vIndex -3);//3
+                        landscapeTriangles.Add(vIndex -1);//3
+                        landscapeTriangles.Add(vIndex - 2);//1
+                        landscapeTriangles.Add(vIndex);//0
+                        continue;
+                    }
+                    previous = spaces[x, y, z];
+                }
+            }
+        }
+
+        //X wise sweep
+        for (int y = 0; y < spaces.GetLength(1); y++)
+        {
+            for (int z = 0; z < spaces.GetLength(2); z++)
+            {
+                for (int x = 0; x < spaces.GetLength(0); x++)
+                {
+                    if ((previous == 0 || previous == 2) && (spaces[x, y, z] == 1 || spaces[x,y,z] == 3))
+                    {
+                        previous = spaces[x, y, z];
+                        spaces[x, y, z] = 3;
+
+                        float xo = (centre.x - cubeWidth / 2) + x;
+                        float zo = (centre.z - cubeWidth / 2) + z;
+                        float yo = centre.y + y;
+                        spaces[x, y, z] = 2;
+
+                        landscapeVerts.Add(new Vector3(xo - 0.5f, yo + 0.5f, zo + 0.5f));
+                        landscapeVerts.Add(new Vector3(xo - 0.5f, yo + 0.5f, zo - 0.5f));
+                        landscapeVerts.Add(new Vector3(xo - 0.5f, yo - 0.5f, zo - 0.5f));
+                        landscapeVerts.Add(new Vector3(xo - 0.5f, yo - 0.5f, zo + 0.5f));
+                        int vIndex = landscapeVerts.Count - 1;
+                        landscapeUvs.Add(new Vector3(landscapeVerts[vIndex - 3].x, landscapeVerts[vIndex - 3].y));
+                        landscapeUvs.Add(new Vector3(landscapeVerts[vIndex - 2].x, landscapeVerts[vIndex - 2].y));
+                        landscapeUvs.Add(new Vector3(landscapeVerts[vIndex - 1].x, landscapeVerts[vIndex - 1].y));
+                        landscapeUvs.Add(new Vector3(landscapeVerts[vIndex].x, landscapeVerts[vIndex].y));
+                        int tIndex = ((landscapeVerts.Count / 2) * 3) - 1;
+                        landscapeTriangles.Add(vIndex - 3);
+                        landscapeTriangles.Add(vIndex - 2);
+                        landscapeTriangles.Add(vIndex);
+                        landscapeTriangles.Add(vIndex);
+                        landscapeTriangles.Add(vIndex - 2);
+                        landscapeTriangles.Add(vIndex - 1);
+                    }
+                    else
+                    {
+                        previous = spaces[x, y, z];
+                    }
+                }
+            }
+        }
+        //X wise sweep backwards
+        for (int y = 0; y < spaces.GetLength(1); y++)
+        {
+            for (int z = spaces.GetLength(2) - 1; z >= 0; z--)
+            {
+                for (int x = spaces.GetLength(0) - 1; x >= 0; x--)
+                {
+                    if ((previous == 0 || previous == 2) && (spaces[x, y, z] == 1 || spaces[x, y, z] == 3))
+                    {
+                        Debug.Log("Rock");
+                        previous = spaces[x, y, z];
+                        spaces[x, y, z] = 3;
+
+                        float xo = (centre.x - cubeWidth / 2) + x;
+                        float zo = (centre.z - cubeWidth / 2) + z;
+                        float yo = centre.y + y;
+                        spaces[x, y, z] = 2;
+
+                        landscapeVerts.Add(new Vector3(xo + 0.5f, yo + 0.5f, zo + 0.5f));
+                        landscapeVerts.Add(new Vector3(xo + 0.5f, yo + 0.5f, zo - 0.5f));
+                        landscapeVerts.Add(new Vector3(xo + 0.5f, yo - 0.5f, zo - 0.5f));
+                        landscapeVerts.Add(new Vector3(xo + 0.5f, yo - 0.5f, zo + 0.5f));
+                        int vIndex = landscapeVerts.Count - 1;
+                        landscapeUvs.Add(new Vector3(landscapeVerts[vIndex - 3].x, landscapeVerts[vIndex - 3].y));
+                        landscapeUvs.Add(new Vector3(landscapeVerts[vIndex - 2].x, landscapeVerts[vIndex - 2].y));
+                        landscapeUvs.Add(new Vector3(landscapeVerts[vIndex - 1].x, landscapeVerts[vIndex - 1].y));
+                        landscapeUvs.Add(new Vector3(landscapeVerts[vIndex].x, landscapeVerts[vIndex].y));
+                        int tIndex = ((landscapeVerts.Count / 2) * 3) - 1;
+                        landscapeTriangles.Add(vIndex);//0
+                        landscapeTriangles.Add(vIndex - 2);//1
+                        landscapeTriangles.Add(vIndex - 3);//3
+                        landscapeTriangles.Add(vIndex - 1);//3
+                        landscapeTriangles.Add(vIndex - 2);//1
+                        landscapeTriangles.Add(vIndex);//0
+                        continue;
+                    }
+                    previous = spaces[x, y, z];
+                }
+            }
+        }
+    }
+
+    void CreateLandscape()
+    {
+        Debug.Log("Verts: "+landscapeVerts.Count);
+        Debug.Log("Uvs: " + landscapeUvs.Count);
+        Debug.Log("Triangles: " + landscapeTriangles.Count);
+
+        landscape = new GameObject("Landscape", typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider));
+        landscape.transform.parent = squareObject.transform;
+        Mesh l = new Mesh();
+        l.vertices = landscapeVerts.ToArray();
+        l.uv = landscapeUvs.ToArray();
+        l.triangles = landscapeTriangles.ToArray();
+        l.RecalculateNormals();
+        landscape.GetComponent<MeshFilter>().mesh = l;
+        landscape.GetComponent<MeshCollider>().sharedMesh = l;
+        hasLandscape = true;
+    }
     void CreateFloor()
     {
         int[] floorT = new int[6];
@@ -237,9 +479,10 @@ public class MeshData
         cubeWidth = (int)(square.corners[1].x - square.corners[0].x);
         this.region = square.region;
         items = new ItemLocation[cubeWidth,height,cubeWidth];
+        spaces = new int[cubeWidth, height, cubeWidth];
 
 
-        for(int i = 0; i < square.corners.Length; i++)
+        for (int i = 0; i < square.corners.Length; i++)
         {
             newCorners[i] = square.corners[i];
             cubeCorners[i] = square.corners[i];
@@ -252,11 +495,11 @@ public class MeshData
 
         //CreateChain(new Vector3(1, 1, 1), new Vector3(10, 10, 10));
 
-
         InitializeArays();
         GetNewValues();
         AddVertices();
         AddUvs();
+        CalculateLandscape();
         CreateWalls();
     }
 
@@ -294,7 +537,15 @@ public class MeshData
     {
         Vector3Int location = new Vector3Int((int)(position.x + cubeWidth/2), (int)(position.y), (int)(position.z + cubeWidth / 2));
         if (items[location.x, location.y, location.z].exists) return;
-        items[location.x, location.y, location.z] = new ItemLocation(name, position, rotation);
+        if (spaces[location.x, location.y, location.z] == 0)
+        {
+            items[location.x, location.y, location.z] = new ItemLocation(name, position, rotation);
+            spaces[location.x, location.y, location.z] = 1;
+        }
+        else
+        {
+            Debug.Log("Space is already Aucupied");
+        }
     }
     public void RenderAdditions(TextureSettings textureSettings, string mainFile)
     {
@@ -389,6 +640,10 @@ public class MeshData
         {
             CreateFloor();
         }
+        if(!hasLandscape)
+        {
+            CreateLandscape();
+        }
         hasmesh = true;
         
     }
@@ -400,6 +655,7 @@ public class MeshData
     {
         squareObject.SetActive(b);
         floor.SetActive(b);
+        landscape.SetActive(b);
     }
     public void LoadTextures(TextureSettings textureSettings)//somehow this loads with a seperate texturesettings instance throughout the rendering proces
     {
